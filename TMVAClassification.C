@@ -76,8 +76,8 @@ void TMVAClassification( TString mZ = "", TString mDark = "", TString rinv = "",
    // to get access to the GUI and all tmva macros
    TString thisdir = gSystem->DirName(gInterpreter->GetCurrentMacroName());
    gROOT->SetMacroPath(thisdir + ":" + gROOT->GetMacroPath());
-   gROOT->ProcessLine(".L TMVAGui.C");
-
+   //gROOT->ProcessLine(".L TMVAGui.C");
+   
    // Default MVA methods to be trained + tested
    std::map<std::string,int> Use;
 
@@ -89,7 +89,7 @@ void TMVAClassification( TString mZ = "", TString mDark = "", TString rinv = "",
    Use["CutsSA"]          = 0;
    // 
    // --- 1-dimensional likelihood ("naive Bayes estimator")
-   Use["Likelihood"]      = 1;
+   Use["Likelihood"]      = 0;
    Use["LikelihoodD"]     = 0; // the "D" extension indicates decorrelated input variables (see option strings)
    Use["LikelihoodPCA"]   = 0; // the "PCA" extension indicates PCA-transformed input variables (see option strings)
    Use["LikelihoodKDE"]   = 0;
@@ -105,7 +105,7 @@ void TMVAClassification( TString mZ = "", TString mDark = "", TString rinv = "",
    //
    // --- Linear Discriminant Analysis
    Use["LD"]              = 0; // Linear Discriminant identical to Fisher
-   Use["Fisher"]          = 1;
+   Use["Fisher"]          = 0;
    Use["FisherG"]         = 0;
    Use["BoostedFisher"]   = 0; // uses generalised MVA method boosting
    Use["HMatrix"]         = 0;
@@ -141,7 +141,6 @@ void TMVAClassification( TString mZ = "", TString mDark = "", TString rinv = "",
 
    std::cout << std::endl;
    std::cout << "==> Start TMVAClassification" << std::endl;
-
 
    // --------------------------------------------------------------------------------------------------
 
@@ -204,10 +203,32 @@ void TMVAClassification( TString mZ = "", TString mDark = "", TString rinv = "",
    // (it is also possible to use ASCII format as input -> see TMVA Users Guide)
 
    TString fnames = "PrivateSamples.SVJ_mZprime-"+(TString)mZ+"_mDark-"+(TString)mDark+"_rinv-"+(TString)rinv+"_alpha-"+(TString)alpha+"_n-500_0_RA2AnalysisTree.root";
-   TString fnameb = "Summer16.QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
+
+   TString fnameb_80to120 = "Summer16.QCD_Pt_80to120_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
+   TString fnameb_120to170 = "Summer16.QCD_Pt_120to170_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
+   TString fnameb_170to300 = "Summer16.QCD_Pt_170to300_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
+   TString fnameb_300to470 = "Summer16.QCD_Pt_300to470_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
+   TString fnameb_470to600 = "Summer16.QCD_Pt_470to600_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
+   TString fnameb_600to800 = "Summer16.QCD_Pt_600to800_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
+   TString fnameb_800to1000 = "Summer16.QCD_Pt_800to1000_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
+   TString fnameb_1000to1400 = "Summer16.QCD_Pt_1000to1400_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
+   TString fnameb_1400to1800 = "Summer16.QCD_Pt_1400to1800_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
+   TString fnameb_1800to2400 = "Summer16.QCD_Pt_1800to2400_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
+   TString fnameb_2400to3200 = "Summer16.QCD_Pt_2400to3200_TuneCUETP8M1_13TeV_pythia8_0_RA2AnalysisTree.root"; 
 
    TFile *inputs = TFile::Open( fnames );
-   TFile *inputb = TFile::Open( fnameb );
+
+   TFile *inputb_80to120 = TFile::Open( fnameb_80to120 );
+   TFile *inputb_120to170 = TFile::Open( fnameb_120to170 );
+   TFile *inputb_170to300 = TFile::Open( fnameb_170to300 );
+   TFile *inputb_300to470 = TFile::Open( fnameb_300to470 );
+   TFile *inputb_470to600 = TFile::Open( fnameb_470to600 );
+   TFile *inputb_600to800 = TFile::Open( fnameb_600to800 );
+   TFile *inputb_800to1000 = TFile::Open( fnameb_800to1000 );
+   TFile *inputb_1000to1400 = TFile::Open( fnameb_1000to1400 );
+   TFile *inputb_1400to1800 = TFile::Open( fnameb_1400to1800 );
+   TFile *inputb_1800to2400 = TFile::Open( fnameb_1800to2400 );
+   TFile *inputb_2400to3200 = TFile::Open( fnameb_2400to3200 );
 
    std::cout << "--- TMVAClassification       : Using signal input file: " << inputs->GetName() << std::endl;
    
@@ -215,7 +236,18 @@ void TMVAClassification( TString mZ = "", TString mDark = "", TString rinv = "",
 
    //input->cd("TreeMaker2");
    TTree *signal     = (TTree*)inputs->Get("TreeMaker2/PreSelection");
-   TTree *background = (TTree*)inputb->Get("TreeMaker2/PreSelection");
+  
+   TTree *background_80to120 = (TTree*)inputb_80to120->Get("TreeMaker2/PreSelection");
+   TTree *background_120to170 = (TTree*)inputb_120to170->Get("TreeMaker2/PreSelection");
+   TTree *background_170to300 = (TTree*)inputb_170to300->Get("TreeMaker2/PreSelection");
+   TTree *background_300to470 = (TTree*)inputb_300to470->Get("TreeMaker2/PreSelection");
+   TTree *background_470to600 = (TTree*)inputb_470to600->Get("TreeMaker2/PreSelection");
+   TTree *background_600to800 = (TTree*)inputb_600to800->Get("TreeMaker2/PreSelection");
+   TTree *background_800to1000 = (TTree*)inputb_800to1000->Get("TreeMaker2/PreSelection");
+   TTree *background_1000to1400 = (TTree*)inputb_1000to1400->Get("TreeMaker2/PreSelection");
+   TTree *background_1400to1800 = (TTree*)inputb_1400to1800->Get("TreeMaker2/PreSelection");
+   TTree *background_1800to2400 = (TTree*)inputb_1800to2400->Get("TreeMaker2/PreSelection");
+   TTree *background_2400to3200 = (TTree*)inputb_2400to3200->Get("TreeMaker2/PreSelection");
    
    // global event weights per tree (see below for setting event-wise weights)
    Double_t signalWeight     = 1.0;
@@ -223,7 +255,17 @@ void TMVAClassification( TString mZ = "", TString mDark = "", TString rinv = "",
    
    // You can add an arbitrary number of signal or background trees
    factory->AddSignalTree    ( signal,     signalWeight     );
-   factory->AddBackgroundTree( background, backgroundWeight );
+   factory->AddBackgroundTree( background_80to120, backgroundWeight );
+   factory->AddBackgroundTree( background_120to170, backgroundWeight );
+   factory->AddBackgroundTree( background_170to300, backgroundWeight );
+   factory->AddBackgroundTree( background_300to470, backgroundWeight );
+   factory->AddBackgroundTree( background_470to600, backgroundWeight );
+   factory->AddBackgroundTree( background_600to800, backgroundWeight );
+   factory->AddBackgroundTree( background_800to1000, backgroundWeight );
+   factory->AddBackgroundTree( background_1000to1400, backgroundWeight );
+   factory->AddBackgroundTree( background_1400to1800, backgroundWeight );
+   factory->AddBackgroundTree( background_1800to2400, backgroundWeight );
+   factory->AddBackgroundTree( background_2400to3200, backgroundWeight );
    
    // To give different trees for training and testing, do as follows:
    //    factory->AddSignalTree( signalTrainingTree, signalTrainWeight, "Training" );
@@ -270,6 +312,8 @@ void TMVAClassification( TString mZ = "", TString mDark = "", TString rinv = "",
    //   factory->SetSignalWeightExpression    ("weight");
    //   factory->SetBackgroundWeightExpression("weight");
 
+   factory->SetSignalWeightExpression    ("Weight");
+   factory->SetBackgroundWeightExpression("Weight");
    // Apply additional cuts on the signal and background samples (can be different)
 
    TCut mycuts = "";
