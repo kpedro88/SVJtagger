@@ -1,0 +1,47 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+*.pcm
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Other Stuff
+*.d
+*.pyc
+*.log
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Binary files and output
+*.root
+*.png
+*.zip
+*.eps
+*.pdf
+*.xml
+*.pkl
+
+# Folders
+/uBDT/koza4ok
+/uBDT/skTMVA
