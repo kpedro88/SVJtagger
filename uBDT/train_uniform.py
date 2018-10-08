@@ -104,5 +104,7 @@ skTMVA.convert_bdt__Grad(classifiers['GradBoost'],tmva_vars,'TMVA_GradBoost_weig
 classifiers['uGBFL'].loss_ = classifiers['uGBFL'].loss
 classifiers['uGBFL'].loss_.K = 1
 classifiers['uGBFL'].estimators_ = np.empty((classifiers['uGBFL'].n_estimators, classifiers['uGBFL'].loss_.K), dtype=np.object)
-for i,est in enumerate(classifiers['uGBFL'].estimators): classifiers['uGBFL'].estimators_[i] = est[0]
+for i,est in enumerate(classifiers['uGBFL'].estimators):
+    classifiers['uGBFL'].estimators_[i] = est[0]
+    classifiers['uGBFL'].estimators_[i][0].leaf_values = est[1]
 skTMVA.convert_bdt__Grad(classifiers['uGBFL'],tmva_vars,'TMVA_uGBFL_weights.xml')
