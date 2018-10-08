@@ -1,3 +1,10 @@
+# this is the only way to get rid of sklearn warnings
+def warn(*args, **kwargs):
+    pass
+import warnings
+warn_ = warnings.warn
+warnings.warn = warn
+
 import numpy as np
 import uproot as up
 import pandas as pd
@@ -8,6 +15,9 @@ from rep.estimators import SklearnClassifier
 from hep_ml.commonutils import train_test_split
 from hep_ml import uboost, gradientboosting as ugb, losses
 from rep.metaml import ClassifiersFactory
+
+# restore warnings
+warnings.warn = warn_
 
 # specify data
 path = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/Run2ProductionV14/Skims/tree_dijetmthadloose-train-flatsig/"
