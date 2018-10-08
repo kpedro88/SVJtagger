@@ -108,3 +108,10 @@ for i,est in enumerate(classifiers['uGBFL'].estimators):
     classifiers['uGBFL'].estimators_[i] = est[0]
     classifiers['uGBFL'].estimators_[i][0].leaf_values = est[1]
 skTMVA.convert_bdt__Grad(classifiers['uGBFL'],tmva_vars,'TMVA_uGBFL_weights.xml')
+
+# save reports
+reports = {}
+reports["train"] = classifiers.test_on(trainX, trainY)
+reports["test"] = classifiers.test_on(testX, testY)
+with open('train_uniform_reports.pkl', 'wb') as outfile:
+	cPickle.dump(reports, outfile)
