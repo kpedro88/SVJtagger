@@ -40,11 +40,8 @@ datasets = {
     ],
 }
 
-# define features
-uniform_features = ["pt"]
-train_features = ["mult","axisminor","girth","tau21","tau32","msd","deltaphi"]
-spectators = ["mt","eta"]
-all_vars = uniform_features+train_features+spectators
+# provides: uniform_features, train_features, spectators, all_vars
+from features import *
 
 # load and create dataframes
 dfs = {}
