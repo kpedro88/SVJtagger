@@ -96,13 +96,13 @@ classifiers['uGBFL'] = SklearnClassifier(ugbFL)
 classifiers.fit(trainX, trainY, sample_weight=trainW, parallel_profile='threads-4')
 
 # saving results
-import cPickle
+import cPickle as pickle
 from skTMVA import skTMVA
 
 # save classifiers to pkl file
 with open('train_uniform_classifiers.pkl', 'wb') as outfile:
-	cPickle.dump(classifiers['GradBoost'], outfile)
-	cPickle.dump(classifiers['uGBFL'], outfile)
+	pickle.dump(classifiers['GradBoost'], outfile)
+	pickle.dump(classifiers['uGBFL'], outfile)
 
 # save in TMVA format
 tmva_vars = [(f,'F') for f in train_features]
@@ -124,4 +124,4 @@ reports = {}
 reports["train"] = classifiers.test_on(trainX, trainY)
 reports["test"] = classifiers.test_on(testX, testY)
 with open('train_uniform_reports.pkl', 'wb') as outfile:
-	cPickle.dump(reports, outfile)
+	pickle.dump(reports, outfile)
