@@ -68,7 +68,7 @@ cls["background"] = np.zeros(len(dfs["background"]))
 X = pd.concat([dfs["signal"],dfs["background"]])
 Y = np.concatenate((cls["signal"],cls["background"]))
 W = pd.concat((wts["signal"],wts["background"])).values
-trainX, testX, trainY, testY, trainW, testW = train_test_split(X, Y, W, test_size=0.99, random_state=42)
+trainX, testX, trainY, testY, trainW, testW = train_test_split(X, Y, W, test_size=0.01, train_size=0.01, random_state=42)
 
 # create classifiers
 classifiers = ClassifiersFactory()
