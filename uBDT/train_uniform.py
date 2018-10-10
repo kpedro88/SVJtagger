@@ -135,12 +135,8 @@ tmva_vars = [(f,'F') for f in train_features]
 skTMVA.convert_bdt__Grad(classifiers['GradBoost'],tmva_vars,wname_GB)
 
 # make UGradientBoostingClassifier compatible w/ sklearn GradientBoostingClassifier
-classifiers['uGBFL'].loss_ = classifiers['uGBFL'].loss
-classifiers['uGBFL'].loss_.K = 1
-classifiers['uGBFL'].estimators_ = np.empty((classifiers['uGBFL'].n_estimators, classifiers['uGBFL'].loss_.K), dtype=np.object)
-for i,est in enumerate(classifiers['uGBFL'].estimators):
-    classifiers['uGBFL'].estimators_[i] = est[0]
-    classifiers['uGBFL'].estimators_[i][0].leaf_values = est[1]
+from mods import uGB_to_GB
+uGB_to_GB(classifiers['uGBFL'])
 skTMVA.convert_bdt__Grad(classifiers['uGBFL'],tmva_vars,wname_uGB)
 
 # save reports

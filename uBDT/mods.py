@@ -19,3 +19,12 @@ def plot_size():
         self.figsize = (7,7)
     AbstractPlot.__init__ = new_init
 
+def uGB_to_GB(classifier):
+    import numpy as np
+    classifier.loss_ = classifier.loss
+    classifier.loss_.K = 1
+    classifier.estimators_ = np.empty((classifier.n_estimators, classifier.loss_.K), dtype=np.object)
+    for i,est in enumerate(classifier.estimators):
+        classifier.estimators_[i] = est[0]
+        classifier.estimators_[i][0].leaf_values = est[1]
+
