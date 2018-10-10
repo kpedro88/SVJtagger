@@ -99,8 +99,7 @@ from skTMVA import skTMVA
 
 # save classifiers to pkl file
 with open('train_uniform_classifiers.pkl', 'wb') as outfile:
-	pickle.dump(classifiers['GradBoost'], outfile)
-	pickle.dump(classifiers['uGBFL'], outfile)
+	pickle.dump(classifiers, outfile)
 
 # save in TMVA format
 tmva_vars = [(f,'F') for f in train_features]
