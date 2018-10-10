@@ -118,7 +118,7 @@ skTMVA.convert_bdt__Grad(classifiers['uGBFL'],tmva_vars,'TMVA_uGBFL_weights.xml'
 
 # save reports
 reports = {}
-reports["train"] = classifiers.test_on(trainX, trainY)
-reports["test"] = classifiers.test_on(testX, testY)
+reports["train"] = classifiers.test_on(trainX, trainY, sample_weight=trainW)
+reports["test"] = classifiers.test_on(testX, testY, sample_weight=testW)
 with open('train_uniform_reports.pkl', 'wb') as outfile:
 	pickle.dump(reports, outfile)
