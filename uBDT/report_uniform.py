@@ -13,9 +13,19 @@ from hep_ml.metrics import BinBasedSDE, KnnBasedCvM
 from rep.plotting import AbstractPlot
 import matplotlib.pyplot as plt
 import cPickle as pickle
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from collections import OrderedDict
 
 # restore warnings
 warnings.warn = warn_
+
+# check arguments
+parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+parser.add_argument("-i","--input", dest="input", type=str, default="train_uniform_reports.pkl", help="name of .pkl file with reports")
+parser.add_argument("-c","--classifiers", dest="classifiers", type=str, default=[], nargs='*', help="plot only for specified classifier(s) (space-separated)")
+parser.add_argument("-s","--suffix", dest="suffix", type=str, default="", help="suffix for plots")
+parser.add_argument("-f","--formats", dest="formats", type=str, default=["png"], nargs='*', help="print plots in specified format(s) (space-separated)")
+args = parser.parse_args()
 
 # change default sizing
 orig_init = AbstractPlot.__init__
@@ -27,11 +37,33 @@ AbstractPlot.__init__ = new_init
 def saveplot(pname,plot,figsize=None):
     plot.plot(new_plot=True,figsize=figsize)
     fig = plt.gcf()
-    fig.savefig(pname+".png",dpi=100)
+    fname = pname
+    if len(args.suffix)>0: fname += "_"+args.suffix
+    for format in args.formats:
+        fargs = {}
+        if format=="png": fargs = {"dpi":100}
+        elif format=="pdf": fargs = {"bbox_inches":"tight"}
+        fig.savefig(fname+"."+format,**fargs)
 
 # get reports
-with open("train_uniform_reports.pkl",'rb') as infile:
+with open(args.input,'rb') as infile:
     reports = pickle.load(infile)
+
+# check for subset of classifiers
+if len(args.classifiers)>0:
+    for rname,report in reports.iteritems():
+        est_old = report.estimators
+        pred_old = report.prediction
+        est_new = ClassifiersFactory()
+        pred_new = OrderedDict()
+        for classifier in args.classifiers:
+            if classifier in est_old:
+                est_new[classifier] = est_old[classifier]
+                pred_new[classifier] = pred_old[classifier]
+            else:
+                raise ValueError("Requested classifier "+classifier+" not found in report "+rname)
+        report.estimators = est_new
+        report.prediction = pred_new
 
 # provides: uniform_features, train_features, spectators, all_vars
 from features import *
@@ -57,7 +89,7 @@ plots["FeatureImportance"] = reports["test"].feature_importance()
 
 # plot w/ matplotlib because most things not supported for ROOT/TMVA style
 for pname,plot in sorted(plots.iteritems()):
-	# separate these
+    # separate these
     if pname=="CorrelationMatrix":
         for i,iplot in enumerate(plot.plots):
             saveplot(pname+"_"+labels[i],iplot,figsize=(7,7))
