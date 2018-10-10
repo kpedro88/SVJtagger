@@ -1,23 +1,19 @@
-# this is the only way to get rid of sklearn warnings
-def warn(*args, **kwargs):
-    pass
-import warnings
-warn_ = warnings.warn
-warnings.warn = warn
+# get rid of sklearn warnings
+from mods import suppress_warn, reset_warn
+suppress_warn()
 
 from rep.estimators import SklearnClassifier
 from hep_ml import uboost, gradientboosting as ugb, losses
 from rep.metaml import ClassifiersFactory
 from rep.report.metrics import RocAuc
 from hep_ml.metrics import BinBasedSDE, KnnBasedCvM
-from rep.plotting import AbstractPlot
 import matplotlib.pyplot as plt
 import cPickle as pickle
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from collections import OrderedDict
 
 # restore warnings
-warnings.warn = warn_
+reset_warn()
 
 # check arguments
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
@@ -28,11 +24,8 @@ parser.add_argument("-f","--formats", dest="formats", type=str, default=["png"],
 args = parser.parse_args()
 
 # change default sizing
-orig_init = AbstractPlot.__init__
-def new_init(self):
-    orig_init(self)
-    self.figsize = (7,7)
-AbstractPlot.__init__ = new_init
+from mods import plot_size
+plot_size()
 
 def saveplot(pname,plot,figsize=None):
     plot.plot(new_plot=True,figsize=figsize)

@@ -1,9 +1,6 @@
-# this is the only way to get rid of sklearn warnings
-def warn(*args, **kwargs):
-    pass
-import warnings
-warn_ = warnings.warn
-warnings.warn = warn
+# get rid of sklearn warnings
+from mods import suppress_warn, reset_warn
+suppress_warn()
 
 import sys
 import numpy as np
@@ -19,7 +16,7 @@ from rep.metaml import ClassifiersFactory
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 # restore warnings
-warnings.warn = warn_
+reset_warn()
 
 # make status messages useful
 def fprint(msg):
