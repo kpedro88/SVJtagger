@@ -78,7 +78,7 @@ plots["RocCurve"] = reports["test"].roc(physics_notion=True)
 # need to reset classifier features to only trained features (eliminating spectators)
 for name, estimator in reports["test"].estimators.items():
     estimator.features = train_features
-plots["FeatureImportance"] = reports["test"].feature_importance()
+plots["FeatureImportance"] = reports["test"].feature_importance(grid_columns=len(report.estimators))
 
 # plot w/ matplotlib because most things not supported for ROOT/TMVA style
 for pname,plot in sorted(plots.iteritems()):
