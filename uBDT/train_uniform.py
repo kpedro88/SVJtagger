@@ -77,7 +77,8 @@ if args.verbose: fprint("Loaded data")
 # split dataset into train and test
 X = pd.concat([dfs["signal"],dfs["background"]])
 Y = np.concatenate((cls["signal"],cls["background"]))
-W = pd.concat((wts["signal"],wts["background"])).values
+W = pd.concat([wts["signal"],wts["background"]]).values
+W.shape = (W.size)
 trainX, testX, trainY, testY, trainW, testW = train_test_split(X, Y, W, test_size=args.trainTestSize, train_size=args.trainTestSize, random_state=42)
 
 if args.verbose: fprint("Split data into train_size="+str(args.trainTestSize)+", test_size="+str(args.trainTestSize))
