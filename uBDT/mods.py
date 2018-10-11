@@ -1,14 +1,17 @@
 # this is the only way to get rid of sklearn warnings
-def warn(*args, **kwargs):
-    pass
-import warnings
-warn_ = warnings.warn
-
 def suppress_warn():
+    def warn(*args, **kwargs):
+        pass
+    import warnings
+    warnings.warn_ = warnings.warn
     warnings.warn = warn
 
 def reset_warn():
-    warnings.warn = warn_
+    import warnings
+    if hasattr(warnings,"warn_"):
+        warnings.warn = warnings.warn_
+    else:
+        print("Already reset warn")
 
 def plot_size():
     from rep.plotting import AbstractPlot
