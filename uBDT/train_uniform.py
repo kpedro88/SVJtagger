@@ -95,7 +95,8 @@ base_grad = GradientBoostingClassifier(
 classifiers['GradBoost'] = SklearnClassifier(base_grad, features=train_features)
 
 # uniform in signal and background
-flatnessloss = ugb.KnnFlatnessLossFunction(uniform_features, fl_coefficient=3., power=1.3, uniform_label=[0,1])
+#flatnessloss = ugb.KnnFlatnessLossFunction(uniform_features, fl_coefficient=3., power=1.3, uniform_label=[0,1])
+flatnessloss = ugb.BinFlatnessLossFunction(uniform_features, fl_coefficient=3., power=1.3, uniform_label=[0,1], n_bins=20)
 ugbFL = ugb.UGradientBoostingClassifier(
     loss=flatnessloss,
     max_depth=3,
