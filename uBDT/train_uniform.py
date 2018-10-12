@@ -68,6 +68,10 @@ for dname,dlist in datasets.iteritems():
         # apply pt flattening weights
         wts[dname] = wts[dname].append(f["tree"].pandas.df(["flatweight"]))
 
+# balance sig vs. bkg (make weights sum to 1)
+wts["signal"] /= np.sum(wts["signal"])
+wts["background"] /= np.sum(wts["background"])
+
 # classifications
 cls["signal"] = np.ones(len(dfs["signal"]))
 cls["background"] = np.zeros(len(dfs["background"]))
