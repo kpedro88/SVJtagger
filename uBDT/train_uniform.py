@@ -136,8 +136,6 @@ with open(cname, 'wb') as outfile:
 
 # save in TMVA format
 tmva_vars = [(f,'F') for f in train_features]
-#skTMVA.convert_bdt_sklearn_tmva(classifiers['GradBoost'],tmva_vars,'TMVA_GradBoost_weights.xml')
-#skTMVA.convert_bdt_sklearn_tmva(classifiers['uGBFL'],tmva_vars,'TMVA_uGBFL_weights.xml')
 skTMVA.convert_bdt__Grad(classifiers['GradBoost'],tmva_vars,wname_GB)
 
 # make UGradientBoostingClassifier compatible w/ sklearn GradientBoostingClassifier
