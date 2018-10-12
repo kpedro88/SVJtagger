@@ -65,7 +65,7 @@ from features import *
 labels = {0: "QCD", 1: "signal"}
 plots = {}
 
-plots["SpectatorEfficiencies"] = reports["test"].efficiencies(features=["pt","mt","eta"], bins=50, labels_dict=labels)
+plots["SpectatorEfficiencies"] = reports["test"].efficiencies(features=uniform_features+spectators, bins=50, labels_dict=labels)
 plots["CorrelationMatrix"] = reports["test"].features_correlation_matrix_by_class(labels_dict=labels)
 plots["VariablePdfs"] = reports["test"].features_pdf(labels_dict=labels, bins=50, grid_columns=3)
 plots["LearningCurveRocAuc"] = reports["test"].learning_curve(RocAuc(), steps=1)
