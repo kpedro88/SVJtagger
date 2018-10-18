@@ -6,7 +6,9 @@ from rep.estimators import SklearnClassifier
 from hep_ml import uboost, gradientboosting as ugb, losses
 from rep.metaml import ClassifiersFactory
 from rep.report.metrics import RocAuc
+from rep import plotting
 from hep_ml.metrics import BinBasedSDE, KnnBasedCvM
+import numpy as np
 import matplotlib.pyplot as plt
 import cPickle as pickle
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
@@ -26,6 +28,40 @@ args = parser.parse_args()
 # change default sizing
 from mods import plot_size
 plot_size()
+
+# keep histos for later use
+from mods import plot_save_histo
+plot_save_histo()
+
+# make sig vs bkg eff
+def mvaeffs(barplot,labels):
+    effs = {}
+    # for s/sqrt(s+b) calc
+    nb = 1000
+    ns = 1000
+    bin_edges = None
+    # get efficiencies
+    for label, histo in barplot.histo.iteritems():
+        sb = ""
+        if labels[0] in label: sb = "B"
+        elif labels[1] in label: sb = "S"
+        bin_edges = histo[1]
+        norm = np.sum(histo[0],dtype=float)
+        effs[sb] = np.flip(np.cumsum(np.flip(histo[0]),dtype=float))/norm
+    
+    # find max s/sqrt(s+b)
+    signif = effs["S"]*ns/np.sqrt(effs["S"]*ns+effs["B"]*nb)
+    imax = np.argmax(signif)
+    print("For {:d} signal and {:d} background events the maximum S/sqrt(S+B) is {:.2f} when cutting at {:.2f}".format(ns,nb,signif[imax],bin_edges[imax]))
+
+    # make plot
+    eff_curves = OrderedDict()
+    eff_curves[labels[0]] = (bin_edges[:-1],effs["B"])
+    eff_curves[labels[1]] = (bin_edges[:-1],effs["S"])
+    plot_fig = plotting.FunctionsPlot(eff_curves)
+    plot_fig.xlabel = "prediction"
+    plot_fig.ylabel = "efficiency"
+    return plot_fig
 
 def saveplot(pname,plot,figsize=None):
     plot.plot(new_plot=True,figsize=figsize)
@@ -88,3 +124,7 @@ for pname,plot in sorted(plots.iteritems()):
             saveplot(pname+"_"+labels[i],iplot,figsize=(7,7))
     else:
         saveplot(pname,plot)
+
+# this uses the results from plots["PredictionTest"].plot()
+plots["MvaEffs"] = mvaeffs(plots["PredictionTest"],labels)
+saveplot("MvaEffs",plots["MvaEffs"])

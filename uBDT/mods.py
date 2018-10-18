@@ -34,7 +34,7 @@ def uGB_to_GB(classifier):
 def plot_save_histo():
     import numpy
     import matplotlib.pyplot as plt
-    from rep.plotting import BarPlot
+    from rep.plotting import BarPlot, _COLOR_CYCLE
     def _plot_save_histo(self):
         self.histo = {}
         for label, sample in self.data.items():
