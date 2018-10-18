@@ -66,8 +66,8 @@ labels = {0: "QCD", 1: "signal"}
 plots = {}
 
 plots["SpectatorEfficiencies"] = reports["test"].efficiencies(features=uniform_features+spectators, bins=50, labels_dict=labels)
-plots["CorrelationMatrix"] = reports["test"].features_correlation_matrix_by_class(labels_dict=labels)
-plots["VariablePdfs"] = reports["test"].features_pdf(labels_dict=labels, bins=50, grid_columns=3)
+plots["CorrelationMatrix"] = reports["test"].features_correlation_matrix_by_class(features=train_features, labels_dict=labels)
+plots["VariablePdfs"] = reports["test"].features_pdf(features=train_features, labels_dict=labels, bins=50, grid_columns=3)
 plots["LearningCurveRocAuc"] = reports["test"].learning_curve(RocAuc(), steps=1)
 plots["LearningCurveSDE"] = reports["test"].learning_curve(BinBasedSDE(uniform_features, uniform_label=1))
 plots["LearningCurveCvM"] = reports["test"].learning_curve(KnnBasedCvM(uniform_features, uniform_label=1))
