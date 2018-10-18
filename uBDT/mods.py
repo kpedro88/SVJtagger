@@ -68,3 +68,36 @@ def plot_save_histo():
                         width=bin_widths, label=label, alpha=0.5, hatch="/", fill=False)
 
     BarPlot._plot = _plot_save_histo
+
+def fit_separate_weights():
+    from rep.metaml import utils
+    from rep.metaml.factory import train_estimator, AbstractFactory
+    from collections import OrderedDict
+    import time
+
+    def fit_weights(self, X, y, sample_weight=None, parallel_profile=None, features=None):
+        if features is not None:
+            for name, estimator in self.items():
+                if estimator.features is not None:
+                    print('Overwriting features of estimator ' + name)
+                self[name].set_params(features=features)
+
+        # allow specifying different weights for each classifier
+        if isinstance(sample_weight,OrderedDict): sample_weight = list(sample_weight.values())
+        else: sample_weight = [sample_weight] * len(self)
+
+        start_time = time.time()
+        result = utils.map_on_cluster(parallel_profile, train_estimator, list(self.keys()), list(self.values()),
+                                      [X] * len(self), [y] * len(self), sample_weight)
+        for status, data in result:
+            if status == 'success':
+                name, estimator, spent_time = data
+                self[name] = estimator
+                print('model {:12} was trained in {:.2f} seconds'.format(name, spent_time))
+            else:
+                print('Problem while training on the node, report:\n', data)
+
+        print("Totally spent {:.2f} seconds on training".format(time.time() - start_time))
+        return self
+
+    AbstractFactory.fit = fit_weights

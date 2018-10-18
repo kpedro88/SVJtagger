@@ -14,6 +14,7 @@ from hep_ml.commonutils import train_test_split
 from hep_ml import uboost, gradientboosting as ugb, losses
 from rep.metaml import ClassifiersFactory
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from collections import OrderedDict
 
 # restore warnings
 reset_warn()
@@ -56,39 +57,53 @@ from features import *
 
 # load and create dataframes
 dfs = {}
-cls = {}
-wts = {}
+ids = {}
+fwts = {}
+pwts = {}
 
 for dname,dlist in datasets.iteritems():
     dfs[dname] = pd.DataFrame()
-    wts[dname] = pd.DataFrame()
+    fwts[dname] = pd.DataFrame()
+    pwts[dname] = pd.DataFrame()
     for sample in dlist:
         f = up.open(path+"tree_"+sample+".root")
         dfs[dname] = dfs[dname].append(f["tree"].pandas.df(all_vars))
-        # apply pt flattening weights
-        wts[dname] = wts[dname].append(f["tree"].pandas.df(["flatweight"]))
+        # apply pt flattening weights or proc weights
+        fwts[dname] = fwts[dname].append(f["tree"].pandas.df(["flatweight"]))
+        pwts[dname] = pwts[dname].append(f["tree"].pandas.df(["weight"]))
 
 # balance sig vs. bkg (make weights sum to 1)
-wts["signal"] /= np.sum(wts["signal"])
-wts["background"] /= np.sum(wts["background"])
+fwts["signal"] /= np.sum(fwts["signal"])
+pwts["signal"] /= np.sum(pwts["signal"])
+fwts["background"] /= np.sum(fwts["background"])
+pwts["background"] /= np.sum(pwts["background"])
 
 # classifications
-cls["signal"] = np.ones(len(dfs["signal"]))
-cls["background"] = np.zeros(len(dfs["background"]))
+ids["signal"] = np.ones(len(dfs["signal"]))
+ids["background"] = np.zeros(len(dfs["background"]))
 
 if args.verbose: fprint("Loaded data")
 
 # split dataset into train and test
 X = pd.concat([dfs["signal"],dfs["background"]])
-Y = np.concatenate((cls["signal"],cls["background"]))
-W = pd.concat([wts["signal"],wts["background"]]).values
-W.shape = (W.size)
-trainX, testX, trainY, testY, trainW, testW = train_test_split(X, Y, W, test_size=args.trainTestSize, train_size=args.trainTestSize, random_state=42)
+Y = np.concatenate((ids["signal"],ids["background"]))
+FW = pd.concat([fwts["signal"],fwts["background"]]).values
+FW.shape = (FW.size)
+PW = pd.concat([pwts["signal"],pwts["background"]]).values
+PW.shape = (PW.size)
+trainX, testX, trainY, testY, trainFW, testFW, trainPW, testPW = train_test_split(
+	X, Y, FW, PW, 
+	test_size=args.trainTestSize,
+	train_size=args.trainTestSize,
+	random_state=42
+)
 
 if args.verbose: fprint("Split data into train_size="+str(args.trainTestSize)+", test_size="+str(args.trainTestSize))
 
 # create classifiers
 classifiers = ClassifiersFactory()
+weights = OrderedDict()
+
 base_grad = GradientBoostingClassifier(
     max_depth=3,
     n_estimators=1000,
@@ -97,10 +112,10 @@ base_grad = GradientBoostingClassifier(
     min_samples_leaf=0.05,
 )
 classifiers['GradBoost'] = SklearnClassifier(base_grad, features=train_features)
+weights['GradBoost'] = trainFW
 
-# uniform in signal and background
-#flatnessloss = ugb.KnnFlatnessLossFunction(uniform_features, fl_coefficient=3., power=1.3, uniform_label=[0,1])
-flatnessloss = ugb.BinFlatnessLossFunction(uniform_features, fl_coefficient=3., power=1.3, uniform_label=[0,1], n_bins=20)
+# uniform in signal pt
+flatnessloss = ugb.BinFlatnessLossFunction(uniform_features, fl_coefficient=3., power=1.3, uniform_label=1, n_bins=20)
 ugbFL = ugb.UGradientBoostingClassifier(
     loss=flatnessloss,
     max_depth=3,
@@ -110,11 +125,16 @@ ugbFL = ugb.UGradientBoostingClassifier(
     min_samples_leaf=0.05,
     train_features=train_features,
 )
+# do not use features=train_features here, otherwise it won't know about uniform_features
 classifiers['uGBFL'] = SklearnClassifier(ugbFL)
+weights['uGBFL'] = trainPW
 
 if args.verbose: fprint("Start training")
 
-classifiers.fit(trainX, trainY, sample_weight=trainW, parallel_profile='threads-4')
+from mods import fit_separate_weights
+fit_separate_weights()
+
+classifiers.fit(trainX, trainY, sample_weight=weights, parallel_profile='threads-4')
 
 if args.verbose: fprint("Finish training")
 
@@ -145,8 +165,11 @@ skTMVA.convert_bdt__Grad(classifiers['uGBFL'],tmva_vars,wname_uGB)
 
 # save reports
 reports = {}
-reports["train"] = classifiers.test_on(trainX, trainY, sample_weight=trainW)
-reports["test"] = classifiers.test_on(testX, testY, sample_weight=testW)
+# use flat weight as default for all plots
+reports["train"] = classifiers.test_on(trainX, trainY, sample_weight=trainFW)
+reports["test"] = classifiers.test_on(testX, testY, sample_weight=testFW)
+reports["trainP"] = classifiers.test_on(trainX, trainY, sample_weight=trainPW)
+reports["testP"] = classifiers.test_on(testX, testY, sample_weight=testPW)
 with open(rname, 'wb') as outfile:
     pickle.dump(reports, outfile)
 
