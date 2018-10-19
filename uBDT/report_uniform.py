@@ -33,6 +33,10 @@ plot_size()
 from mods import plot_save_histo
 plot_save_histo()
 
+# enable profile plots
+from mods import profile_plots
+profile_plots()
+
 # make sig vs bkg eff
 def mvaeffs(barplot,labels):
     effs = {}
@@ -102,6 +106,7 @@ labels = {0: "QCD", 1: "signal"}
 plots = {}
 
 plots["SpectatorEfficiencies"] = reports["test"].efficiencies(features=uniform_features+spectators, bins=50, labels_dict=labels)
+plots["SpectatorProfiles"] = reports["test"].profiles(features=uniform_features+spectators, bins=50, labels_dict=labels, grid_columns=len(uniform_features+spectators))
 plots["CorrelationMatrix"] = reports["test"].features_correlation_matrix_by_class(features=train_features, labels_dict=labels)
 plots["VariablePdfs"] = reports["test"].features_pdf(features=train_features, labels_dict=labels, bins=50, grid_columns=3)
 plots["LearningCurveRocAuc"] = reports["test"].learning_curve(RocAuc(), steps=1)
