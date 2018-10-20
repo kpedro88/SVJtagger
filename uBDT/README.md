@@ -40,6 +40,7 @@ python report_uniform.py
 Arguments:
 * `-i, --input [file]`: name of .pkl file with reports (default = train_uniform_reports.pkl)
 * `-c, --classifiers [list]`: plot only for specified classifier(s) (space-separated) (default = [] -> all)
+* `-t, --test {F,P}`: suffix for report names (test*, train*) (F = flat weight, P = proc weight)
 * `-s, --suffix [suffix]`: suffix for plots
 * `-f, --formats [list]`: print plots in specified format(s) (space-separated) (default = ['png'])
 

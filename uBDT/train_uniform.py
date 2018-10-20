@@ -165,9 +165,9 @@ skTMVA.convert_bdt__Grad(classifiers['uGBFL'],tmva_vars,wname_uGB)
 
 # save reports
 reports = {}
-# use flat weight as default for all plots
-reports["train"] = classifiers.test_on(trainX, trainY, sample_weight=trainFW)
-reports["test"] = classifiers.test_on(testX, testY, sample_weight=testFW)
+# have to train with both sets of weights because of report structure
+reports["trainF"] = classifiers.test_on(trainX, trainY, sample_weight=trainFW)
+reports["testF"] = classifiers.test_on(testX, testY, sample_weight=testFW)
 reports["trainP"] = classifiers.test_on(trainX, trainY, sample_weight=trainPW)
 reports["testP"] = classifiers.test_on(testX, testY, sample_weight=testPW)
 with open(rname, 'wb') as outfile:

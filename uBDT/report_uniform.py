@@ -21,9 +21,13 @@ reset_warn()
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("-i","--input", dest="input", type=str, default="train_uniform_reports.pkl", help="name of .pkl file with reports")
 parser.add_argument("-c","--classifiers", dest="classifiers", type=str, default=[], nargs='*', help="plot only for specified classifier(s) (space-separated)")
+parser.add_argument("-t","--test", dest="test", type=str, default="", choices=['F','P'], help="suffix for report names (test*, train*)")
 parser.add_argument("-s","--suffix", dest="suffix", type=str, default="", help="suffix for plots")
 parser.add_argument("-f","--formats", dest="formats", type=str, default=["png"], nargs='*', help="print plots in specified format(s) (space-separated)")
 args = parser.parse_args()
+
+test = "test"+options.test
+train = "train"+options.train
 
 # change default sizing
 from mods import plot_size
@@ -105,21 +109,21 @@ from features import *
 labels = {0: "QCD", 1: "signal"}
 plots = {}
 
-plots["SpectatorEfficiencies"] = reports["test"].efficiencies(features=uniform_features+spectators, bins=50, labels_dict=labels)
-plots["SpectatorProfiles"] = reports["test"].profiles(features=uniform_features+spectators, bins=50, labels_dict=labels, grid_columns=len(uniform_features+spectators))
-plots["CorrelationMatrix"] = reports["test"].features_correlation_matrix_by_class(features=train_features, labels_dict=labels)
-plots["VariablePdfs"] = reports["test"].features_pdf(features=train_features, labels_dict=labels, bins=50, grid_columns=3)
-plots["LearningCurveRocAuc"] = reports["test"].learning_curve(RocAuc(), steps=1)
-plots["LearningCurveSDE"] = reports["test"].learning_curve(BinBasedSDE(uniform_features, uniform_label=1))
-plots["LearningCurveCvM"] = reports["test"].learning_curve(KnnBasedCvM(uniform_features, uniform_label=1))
-plots["PredictionTrain"] = reports["test"].prediction_pdf(labels_dict=labels, bins=50, plot_type='bar')
-plots["PredictionTest"] = reports["train"].prediction_pdf(labels_dict=labels, bins=50, plot_type='bar')
-plots["RocCurve"] = reports["test"].roc(physics_notion=True)
+plots["SpectatorEfficiencies"] = reports[test].efficiencies(features=uniform_features+spectators, bins=50, labels_dict=labels)
+plots["SpectatorProfiles"] = reports[test].profiles(features=uniform_features+spectators, bins=50, labels_dict=labels, grid_columns=len(uniform_features+spectators))
+plots["CorrelationMatrix"] = reports[test].features_correlation_matrix_by_class(features=train_features, labels_dict=labels)
+plots["VariablePdfs"] = reports[test].features_pdf(features=train_features, labels_dict=labels, bins=50, grid_columns=3)
+plots["LearningCurveRocAuc"] = reports[test].learning_curve(RocAuc(), steps=1)
+plots["LearningCurveSDE"] = reports[test].learning_curve(BinBasedSDE(uniform_features, uniform_label=1))
+plots["LearningCurveCvM"] = reports[test].learning_curve(KnnBasedCvM(uniform_features, uniform_label=1))
+plots["PredictionTrain"] = reports[test].prediction_pdf(labels_dict=labels, bins=50, plot_type='bar')
+plots["PredictionTest"] = reports[train].prediction_pdf(labels_dict=labels, bins=50, plot_type='bar')
+plots["RocCurve"] = reports[test].roc(physics_notion=True)
 
 # need to reset classifier features to only trained features (eliminating spectators)
-for name, estimator in reports["test"].estimators.items():
+for name, estimator in reports[test].estimators.items():
     estimator.features = train_features
-plots["FeatureImportance"] = reports["test"].feature_importance(grid_columns=len(report.estimators))
+plots["FeatureImportance"] = reports[test].feature_importance(grid_columns=len(report.estimators))
 
 # plot w/ matplotlib because most things not supported for ROOT/TMVA style
 for pname,plot in sorted(plots.iteritems()):
