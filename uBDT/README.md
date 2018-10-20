@@ -43,5 +43,6 @@ Arguments:
 * `-t, --test {F,P}`: suffix for report names (test*, train*) (F = flat weight, P = proc weight)
 * `-s, --suffix [suffix]`: suffix for plots
 * `-f, --formats [list]`: print plots in specified format(s) (space-separated) (default = ['png'])
+* `-v, --verbose`: enable message printing (default = False)
 
 This uses the saved `train_uniform_reports.pkl` output file.

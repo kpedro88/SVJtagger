@@ -1,8 +1,7 @@
 # get rid of sklearn warnings
-from mods import suppress_warn, reset_warn
+from mods import suppress_warn, reset_warn, fprint
 suppress_warn()
 
-import sys
 import numpy as np
 import uproot as up
 import pandas as pd
@@ -18,11 +17,6 @@ from collections import OrderedDict
 
 # restore warnings
 reset_warn()
-
-# make status messages useful
-def fprint(msg):
-    print(msg)
-    sys.stdout.flush()
 
 # check arguments
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)

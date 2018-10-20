@@ -13,6 +13,12 @@ def reset_warn():
     else:
         print("Already reset warn")
 
+# make status messages useful
+def fprint(msg):
+    import sys
+    print(msg)
+    sys.stdout.flush()
+
 def plot_size():
     from rep.plotting import AbstractPlot
     # change default sizing
