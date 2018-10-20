@@ -141,9 +141,10 @@ plots = OrderedDict()
 
 plots["CorrelationMatrix"] = RepPlot(reports[test].features_correlation_matrix_by_class,kwargs={'features':train_features, 'labels_dict':labels})
 plots["FeatureImportance"] = RepPlot(feature_importance,args=[reports[test],len(report.estimators)])
-plots["LearningCurveCvM"] = RepPlot(reports[test].learning_curve,args=[KnnBasedCvM(uniform_features, uniform_label=1)])
-plots["LearningCurveRocAuc"] = RepPlot(reports[test].learning_curve,args=[RocAuc()],kwargs={'steps':1})
-plots["LearningCurveSDE"] = RepPlot(reports[test].learning_curve,args=[BinBasedSDE(uniform_features, uniform_label=1)])
+# learning curves are really slow, disabled for now
+#plots["LearningCurveCvM"] = RepPlot(reports[test].learning_curve,args=[KnnBasedCvM(uniform_features, uniform_label=1)])
+#plots["LearningCurveRocAuc"] = RepPlot(reports[test].learning_curve,args=[RocAuc()],kwargs={'steps':1})
+#plots["LearningCurveSDE"] = RepPlot(reports[test].learning_curve,args=[BinBasedSDE(uniform_features, uniform_label=1)])
 plots["PredictionTest"] = RepPlot(reports[train].prediction_pdf,kwargs={'labels_dict':labels, 'bins':50, 'plot_type':'bar'})
 plots["PredictionTrain"] = RepPlot(reports[test].prediction_pdf,kwargs={'labels_dict':labels, 'bins':50, 'plot_type':'bar'})
 plots["RocCurve"] = RepPlot(reports[test].roc,kwargs={'physics_notion':True})
