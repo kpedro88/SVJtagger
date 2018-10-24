@@ -108,8 +108,10 @@ class RepPlot:
         if args.verbose: fprint("\t  Saving time: {:.2f} seconds".format(time.time() - start_time))
 
 # get reports
+if args.verbose: fprint("Start loading input")
 with open(args.input,'rb') as infile:
     reports = pickle.load(infile)
+if args.verbose: fprint("Finish loading input")
 
 # check for subset of classifiers
 if len(args.classifiers)>0:
