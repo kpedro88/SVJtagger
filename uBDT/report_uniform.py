@@ -136,6 +136,13 @@ def feature_importance(report,columns):
         estimator.features = train_features
     return report.feature_importance(grid_columns=columns)
 
+# get rid of last QCD bin in profiles
+def profiles(report,**kwargs):
+    plot = report.profiles(**kwargs)
+    for p in plot.plots:
+        p.functions['QCD'] = (p.functions['QCD'][0][:-1],p.functions['QCD'][1][:-1])
+    return plot
+
 # generate plots
 plots = OrderedDict()
 
@@ -149,7 +156,7 @@ plots["PredictionTest"] = RepPlot(reports[train].prediction_pdf,kwargs={'labels_
 plots["PredictionTrain"] = RepPlot(reports[test].prediction_pdf,kwargs={'labels_dict':labels, 'bins':50, 'plot_type':'bar'})
 plots["RocCurve"] = RepPlot(reports[test].roc,kwargs={'physics_notion':True})
 plots["SpectatorEfficiencies"] = RepPlot(reports[test].efficiencies,kwargs={'features':uniform_features+spectators, 'bins':50, 'labels_dict':labels})
-plots["SpectatorProfiles"] = RepPlot(reports[test].profiles,kwargs={'features':uniform_features+spectators, 'bins':50, 'labels_dict':labels, 'grid_columns':len(uniform_features+spectators)})
+plots["SpectatorProfiles"] = RepPlot(profiles,args=[reports[test]],kwargs={'features':uniform_features+spectators, 'bins':50, 'labels_dict':labels, 'grid_columns':len(uniform_features+spectators)})
 plots["VariablePdfs"] = RepPlot(reports[test].features_pdf,kwargs={'features':train_features, 'labels_dict':labels, 'bins':50, 'grid_columns':3})
 
 for pname,plot in plots.iteritems():
