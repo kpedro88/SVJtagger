@@ -165,15 +165,19 @@ def profile_plots():
 
     utils.get_profiles = get_profiles
 
-    def profiles(self, features, mask=None, bins=30, labels_dict=None, ignored_sideband=0.0, errors=False, grid_columns=2):
+    def profiles(self, features, mask=None, target_class=1, bins=30, labels_dict=None, ignored_sideband=0.0, errors=False, grid_columns=2):
         """
-        Efficiencies for spectators
+        Profiles of prediction values for spectators
         :param features: using features (if None then use classifier's spectators)
         :type features: None or list[str]
         :param bins: bins for histogram
         :type bins: int or array-like
         :param mask: mask for data, which will be used
         :type mask: None or numbers.Number or array-like or str or function(pandas.DataFrame)
+        :param target_class: draw probabilities of being classified as target_class
+            (default 1, will draw signal probabilities).
+            If None, will draw probability corresponding to right class of each event.
+        :type target_class: int or None
         :param bool errors: if True then use errorbar, else interpolate function
         :param labels_dict: label -- name for class label
             if None then {0: 'bck', '1': 'signal'}
@@ -193,8 +197,9 @@ def profile_plots():
                 prediction = prediction[mask]
                 for label, label_name in labels_dict.items():
                     label_mask = class_labels == label
+                    target_label = label if target_class is None else target_class
                     profiles[label_name] = utils.get_profiles(
-                        prediction[label_mask, label],
+                        prediction[label_mask, target_label],
                         data[feature][label_mask].values,
                         sample_weight=weight[label_mask],
                         bins_number=bins,
@@ -214,6 +219,68 @@ def profile_plots():
         return plotting.GridPlot(grid_columns, *plots)
     
     ClassificationReport.profiles = profiles
+
+def eff_target_class():
+    from collections import OrderedDict
+    from rep import utils
+    from rep import plotting
+    from rep.report import ClassificationReport
+
+    def efficiencies_target(self, features, thresholds=None, mask=None, target_class=1, bins=30, labels_dict=None, ignored_sideband=0.0, errors=False, grid_columns=2):
+        """
+        Efficiencies for spectators
+        :param features: using features (if None then use classifier's spectators)
+        :type features: None or list[str]
+        :param bins: bins for histogram
+        :type bins: int or array-like
+        :param mask: mask for data, which will be used
+        :type mask: None or numbers.Number or array-like or str or function(pandas.DataFrame)
+        :param target_class: draw probabilities of being classified as target_class
+            (default 1, will draw signal probabilities).
+            If None, will draw probability corresponding to right class of each event.
+        :type target_class: int or None
+        :param list[float] thresholds: thresholds on prediction
+        :param bool errors: if True then use errorbar, else interpolate function
+        :param labels_dict: label -- name for class label
+            if None then {0: 'bck', '1': 'signal'}
+        :type labels_dict: None or OrderedDict(int: str)
+        :param int grid_columns: count of columns in grid
+        :param float ignored_sideband: (0, 1) percent of plotting data
+        :rtype: plotting.GridPlot
+        """
+        mask, data, class_labels, weight = self._apply_mask(
+            mask, self._get_features(features), self.target, self.weight)
+        labels_dict = self._check_labels(labels_dict, class_labels)
+
+        plots = []
+        for feature in data.columns:
+            for name, prediction in self.prediction.items():
+                prediction = prediction[mask]
+                eff = OrderedDict()
+                for label, label_name in labels_dict.items():
+                    label_mask = class_labels == label
+                    target_label = label if target_class is None else target_class
+                    eff[label_name] = utils.get_efficiencies(prediction[label_mask, target_label],
+                                                             data[feature][label_mask].values,
+                                                             bins_number=bins,
+                                                             sample_weight=weight[label_mask],
+                                                             thresholds=thresholds, errors=errors,
+                                                             ignored_sideband=ignored_sideband)
+
+                for label_name, eff_data in eff.items():
+                    if errors:
+                        plot_fig = plotting.ErrorPlot(eff_data)
+                    else:
+                        plot_fig = plotting.FunctionsPlot(eff_data)
+                    plot_fig.xlabel = feature
+                    plot_fig.ylabel = 'Efficiency for {}'.format(name)
+                    plot_fig.title = '{} flatness'.format(label_name)
+                    plot_fig.ylim = (0, 1)
+                    plots.append(plot_fig)
+
+        return plotting.GridPlot(grid_columns, *plots)
+
+    ClassificationReport.efficiencies = efficiencies_target
 
 def plot_2D_text():
     import numpy

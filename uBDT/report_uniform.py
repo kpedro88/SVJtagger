@@ -44,6 +44,10 @@ plot_save_histo()
 from mods import profile_plots
 profile_plots()
 
+# fix bkg efficiency plots
+from mods import eff_target_class
+eff_target_class()
+
 # show text on 2D plots
 from mods import plot_2D_text
 plot_2D_text()
