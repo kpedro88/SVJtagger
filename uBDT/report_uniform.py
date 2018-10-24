@@ -44,6 +44,10 @@ plot_save_histo()
 from mods import profile_plots
 profile_plots()
 
+# show text on 2D plots
+from mods import plot_2D_text
+plot_2D_text()
+
 # make sig vs bkg eff
 def mvaeffs(barplot,labels):
     effs = {}
@@ -148,7 +152,7 @@ def profiles(report,**kwargs):
 # generate plots
 plots = OrderedDict()
 
-plots["CorrelationMatrix"] = RepPlot(reports[test].features_correlation_matrix_by_class,kwargs={'features':train_features, 'labels_dict':labels})
+plots["CorrelationMatrix"] = RepPlot(reports[test].features_correlation_matrix_by_class,kwargs={'features':train_features, 'labels_dict':labels, 'vmin':-100, 'vmax':100})
 plots["FeatureImportance"] = RepPlot(feature_importance,args=[reports[test],len(report.estimators)])
 # learning curves are really slow, disabled for now
 #plots["LearningCurveCvM"] = RepPlot(reports[test].learning_curve,args=[KnnBasedCvM(uniform_features, uniform_label=1)])

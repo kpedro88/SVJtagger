@@ -215,3 +215,29 @@ def profile_plots():
     
     ClassificationReport.profiles = profiles
 
+def plot_2D_text():
+    import numpy
+    import matplotlib.pyplot as plt
+
+    from rep import utils
+    # use pct (-100,100) instead of (-1,1)
+    calc_feature_correlation_matrix_old = utils.calc_feature_correlation_matrix
+    def calc_feature_correlation_matrix_pct(df,weights=None):
+        return 100*calc_feature_correlation_matrix_old(df,weights)
+
+    utils.calc_feature_correlation_matrix = calc_feature_correlation_matrix_pct
+
+    # show value on each point in grid
+    from rep.plotting import ColorMap
+    def _plot_text(self):
+        p = plt.pcolor(self.matrix, cmap=self.cmap, vmin=self.vmin, vmax=self.vmax)
+        plt.colorbar(p)
+        plt.xlim((0, self.matrix.shape[0]))
+        plt.ylim((0, self.matrix.shape[1]))
+        for (x,y),z in numpy.ndenumerate(self.matrix):
+            plt.text(x+0.5,y+0.5,'{:.0f}'.format(z),ha='center',va='center',bbox=dict(boxstyle='round', facecolor='white', edgecolor='0.3'))
+        if self.labels is not None:
+            plt.xticks(numpy.arange(0.5, len(self.labels) + 0.5), self.labels, fontsize=self.fontsize, rotation=90)
+            plt.yticks(numpy.arange(0.5, len(self.labels) + 0.5), self.labels, fontsize=self.fontsize)
+
+    ColorMap._plot = _plot_text
