@@ -26,7 +26,7 @@ parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", defa
 args = parser.parse_args()
 
 # specify data
-path = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/Run2ProductionV14/Skims/tree_dijetmthadloose-train-flatsig/"
+path = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/Run2ProductionV14/Skims/tree_dijetmtdetahadmf-train-flatsig/"
 datasets = {
     "signal": [
         "SVJ2_mZprime-3000_mDark-20_rinv-0.3_alpha-0.2",
@@ -63,8 +63,8 @@ for dname,dlist in datasets.iteritems():
         f = up.open(path+"tree_"+sample+".root")
         dfs[dname] = dfs[dname].append(f["tree"].pandas.df(all_vars))
         # apply pt flattening weights or proc weights
-        fwts[dname] = fwts[dname].append(f["tree"].pandas.df(["flatweight"]))
-        pwts[dname] = pwts[dname].append(f["tree"].pandas.df(["weight"]))
+        fwts[dname] = fwts[dname].append(f["tree"].pandas.df(["flatweightZ3"]))
+        pwts[dname] = pwts[dname].append(f["tree"].pandas.df(["procweight"]))
 
 # balance sig vs. bkg (make weights sum to 1)
 fwts["signal"] /= np.sum(fwts["signal"])
