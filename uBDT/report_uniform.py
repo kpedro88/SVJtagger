@@ -82,6 +82,37 @@ def mvaeffs(barplot,labels):
     plot_fig.ylabel = "efficiency"
     return plot_fig
 
+def getlabel(label,labels):
+    rlabel = ""
+    if labels[0] in label: rlabel = labels[0]
+    elif labels[1] in label: rlabel = labels[1]
+    return rlabel
+
+def kstest(barplots,labels):
+    tests = {}
+    for li,label in labels.iteritems():
+        tests[label] = {"result": 0}
+    for dataset,barplot in barplots.iteritems():
+        for label,histo in barplot.histo.iteritems():
+            tests[getlabel(label,labels)][dataset] = histo[0]
+    # conduct tests
+    from scipy import stats
+    for label, test in tests.iteritems():
+        ks, pv = stats.ks_2samp(test["train"],test["test"])
+        test["result"] = ks
+    # update labels and combine into one plot
+    ndata = OrderedDict()
+    for dataset,barplot in sorted(barplots.iteritems()):
+        for label,data in sorted(barplot.data.iteritems()):
+            nlabel = label+" ("+dataset+")"
+            if dataset=="test": nlabel += " (ks = "+"{:.3f}".format(tests[getlabel(label,labels)]["result"])+")"
+            ndata[nlabel] = data
+    # plot together
+    plot_fig = plotting.BarPlot(ndata,bins=barplots["test"].bins,normalization=barplots["test"].normalization,value_range=barplots["test"].value_range)
+    plot_fig.xlabel = barplots["test"].xlabel
+    plot_fig.ylabel = barplots["test"].ylabel
+    return plot_fig
+
 def saveplot(pname,plot,figsize=None):
     plot.plot(new_plot=True,figsize=figsize)
     fig = plt.gcf()
@@ -179,3 +210,13 @@ plots["MvaEffs"] = RepPlot(mvaeffs,args=[plots["PredictionTest"].plot,labels])
 if args.verbose: fprint("MvaEffs")
 plots["MvaEffs"].create()
 plots["MvaEffs"].save("MvaEffs")
+
+# this uses the results from both prediction plots
+preds = {
+    "train": plots["PredictionTrain"].plot,
+    "test": plots["PredictionTest"].plot
+}
+plots["OverTrain"] = RepPlot(kstest,args=[preds,labels])
+if args.verbose: fprint("OverTrain")
+plots["OverTrain"].create()
+plots["OverTrain"].save("OverTrain")
