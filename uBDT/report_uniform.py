@@ -124,6 +124,12 @@ def saveplot(pname,plot,figsize=None):
         elif format=="pdf": fargs = {"bbox_inches":"tight"}
         fig.savefig(fname+"."+format,**fargs)
 
+def saveplots(plots,verbose=False):
+    for pname,plot in plots.iteritems():
+        if verbose: fprint(pname)
+        plot.create()
+        plot.save(pname)
+
 class RepPlot:
     def __init__(self, fun, args=[], kwargs={}):
         self.fun = fun
@@ -200,23 +206,19 @@ plots["SpectatorEfficiencies"] = RepPlot(reports[test].efficiencies,kwargs={'fea
 plots["SpectatorProfiles"] = RepPlot(profiles,args=[reports[test]],kwargs={'features':uniform_features+spectators, 'bins':50, 'labels_dict':labels, 'grid_columns':len(uniform_features+spectators)})
 plots["VariablePdfs"] = RepPlot(reports[test].features_pdf,kwargs={'features':train_features, 'labels_dict':labels, 'bins':50, 'grid_columns':3})
 
-for pname,plot in plots.iteritems():
-    if args.verbose: fprint(pname)
-    plot.create()
-    plot.save(pname)
+saveplots(plots,args.verbose)
+
+# "derived" plots
+plots2 = OrderedDict()
 
 # this uses the results from plots["PredictionTest"].plot.plot()
-plots["MvaEffs"] = RepPlot(mvaeffs,args=[plots["PredictionTest"].plot,labels])
-if args.verbose: fprint("MvaEffs")
-plots["MvaEffs"].create()
-plots["MvaEffs"].save("MvaEffs")
+plots2["MvaEffs"] = RepPlot(mvaeffs,args=[plots["PredictionTest"].plot,labels])
 
 # this uses the results from both prediction plots
 preds = {
     "train": plots["PredictionTrain"].plot,
     "test": plots["PredictionTest"].plot
 }
-plots["OverTrain"] = RepPlot(kstest,args=[preds,labels])
-if args.verbose: fprint("OverTrain")
-plots["OverTrain"].create()
-plots["OverTrain"].save("OverTrain")
+plots2["OverTrain"] = RepPlot(kstest,args=[preds,labels])
+
+saveplots(plots2,args.verbose)
