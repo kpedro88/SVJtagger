@@ -106,7 +106,7 @@ def kstest(barplots,labels):
         for label,data in sorted(barplot.data.iteritems()):
             nlabel = label+" ("+dataset+")"
             if dataset=="test": nlabel += " (ks = "+"{:.3f}".format(tests[getlabel(label,labels)]["result"])+")"
-            ndata[nlabel] = data
+            ndata[nlabel] = (data[0], data[1], 'not_filled' if dataset=="train" else 'filled')
     # plot together
     plot_fig = plotting.BarPlot(ndata,bins=barplots["test"].bins,normalization=barplots["test"].normalization,value_range=barplots["test"].value_range)
     plot_fig.xlabel = barplots["test"].xlabel
