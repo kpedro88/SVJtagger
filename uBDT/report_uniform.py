@@ -21,7 +21,7 @@ reset_warn()
 # check arguments
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("-d","--dir", dest="dir", type=str, default="", help="directory for train_uniform_reports.pkl file (required)")
-parser.add_argument("-C","--config", dest="config", type=str, default="uBDTConfig.py", help="config to provide parameters")
+parser.add_argument("-C","--config", dest="config", type=str, default="test1", help="config to provide parameters")
 parser.add_argument("-c","--classifiers", dest="classifiers", type=str, default=[], nargs='*', help="plot only for specified classifier(s) (space-separated)")
 parser.add_argument("-t","--test", dest="test", type=str, default="", choices=['flat','proc'], help="suffix for report names (test*, train*)")
 parser.add_argument("-s","--suffix", dest="suffix", type=str, default="", help="suffix for plots")
@@ -164,6 +164,8 @@ with open(args.dir+"/train_uniform_reports.pkl",'rb') as infile:
     reports = pickle.load(infile)
 if args.verbose: fprint("Finish loading input")
 
+from mods import config_path
+config_path() 
 uconfig = getattr(__import__(args.config.replace(".py",""),fromlist="uconfig"),"uconfig")
 
 # check for subset of classifiers

@@ -21,7 +21,7 @@ reset_warn()
 
 # check arguments
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument("-C","--config", dest="config", type=str, default="uBDTConfig.py", help="config to provide parameters")
+parser.add_argument("-C","--config", dest="config", type=str, default="test1", help="config to provide parameters")
 parser.add_argument("-t","--train-test-size", dest="trainTestSize", type=float, default=-1, help="size for test and train datasets (override config)")
 parser.add_argument("-d","--dir", dest="dir", type=str, default="", help="directory for output files (required)")
 parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, help="enable message printing")
@@ -30,6 +30,8 @@ args = parser.parse_args()
 if len(args.dir)==0:
     parser.error("Required argument: --dir")
 
+from mods import config_path
+config_path()
 uconfig = getattr(__import__(args.config.replace(".py",""),fromlist="uconfig"),"uconfig")
 if args.trainTestSize > 0: uconfig.training.size = args.trainTestSize
 

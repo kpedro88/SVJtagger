@@ -1,3 +1,8 @@
+# set up path for configs
+def config_path():
+    import os,sys
+    sys.path.append(os.getcwd()+"/configs")
+
 # this is the only way to get rid of sklearn warnings
 def suppress_warn():
     def warn(*args, **kwargs):

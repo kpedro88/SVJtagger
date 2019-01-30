@@ -19,7 +19,7 @@ python train_uniform.py
 ```
 
 Arguments:
-* `-C, --config [file]`: config to provide parameters (default: uBDTConfig.py)
+* `-C, --config [file]`: config to provide parameters (default: test1)
 * `-t, --train-test-size [size]`: size for test and train datasets (override config) (default: -1)
 * `-d, --dir [dir]`: directory for output files (required)
 * `-v, --verbose`: enable message printing (default: False)
@@ -40,7 +40,7 @@ python report_uniform.py
 
 Arguments:
 * `-d, --dir [dir]`: directory for train_uniform_reports.pkl file (required)
-* `-C, --config [file]`: config to provide parameters (default: uBDTConfig.py)
+* `-C, --config [file]`: config to provide parameters (default: test1)
 * `-c, --classifiers [list]`: plot only for specified classifier(s) (space-separated) (default = [] -> all)
 * `-t, --test {flat,proc}`: suffix for report names (test*, train*)
 * `-s, --suffix [suffix]`: suffix for plots
