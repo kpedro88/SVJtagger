@@ -152,8 +152,8 @@ def profile_plots():
         N_in_bin = []
         y_err = []
         for num, (masses, probabilities, weights) in enumerate(bins_data):
-            y_values.append(numpy.average(probabilities, weights=weights) if len(weights)>0 else 0)
-            y_err.append(numpy.sqrt(numpy.cov(probabilities,aweights=weights,ddof=0)/numpy.sum(weights)) if len(weights)>0 else 0)
+            y_values.append(numpy.average(probabilities, weights=weights) if len(weights)>0 and sum(weights)>0.0 else 0)
+            y_err.append(numpy.sqrt(numpy.cov(probabilities,aweights=weights,ddof=0)/numpy.sum(weights)) if len(weights)>0 and sum(weights)>0.0 else 0)
             N_in_bin.append(numpy.sum(weights))
             x_values.append((bin_edges[num + 1] + bin_edges[num]) / 2.)
 
@@ -308,3 +308,55 @@ def plot_2D_text():
             plt.yticks(numpy.arange(0.5, len(self.labels) + 0.5), self.labels, fontsize=self.fontsize)
 
     ColorMap._plot = _plot_text
+
+def get_eff_safe():
+    from rep import utils
+    from rep.utils import Binner, check_arrays, weighted_quantile
+    import numpy
+    from collections import OrderedDict
+
+    def get_efficiencies(prediction, spectator, sample_weight=None, bins_number=20,
+                         thresholds=None, errors=False, ignored_sideband=0.0):
+        prediction, spectator, sample_weight = \
+            check_arrays(prediction, spectator, sample_weight)
+    
+        spectator_min, spectator_max = weighted_quantile(spectator, [ignored_sideband, (1. - ignored_sideband)])
+        mask = (spectator >= spectator_min) & (spectator <= spectator_max)
+        spectator = spectator[mask]
+        prediction = prediction[mask]
+        bins_number = min(bins_number, len(prediction))
+        sample_weight = sample_weight if sample_weight is None else numpy.array(sample_weight)[mask]
+    
+        if thresholds is None:
+            thresholds = [weighted_quantile(prediction, quantiles=1 - eff, sample_weight=sample_weight)
+                          for eff in [0.2, 0.4, 0.5, 0.6, 0.8]]
+    
+        binner = Binner(spectator, bins_number=bins_number)
+        if sample_weight is None:
+            sample_weight = numpy.ones(len(prediction))
+        bins_data = binner.split_into_bins(spectator, prediction, sample_weight)
+    
+        bin_edges = numpy.array([spectator_min] + list(binner.limits) + [spectator_max])
+        xerr = numpy.diff(bin_edges) / 2.
+        result = OrderedDict()
+        for threshold in thresholds:
+            x_values = []
+            y_values = []
+            N_in_bin = []
+            for num, (masses, probabilities, weights) in enumerate(bins_data):
+                if len(weights)==0 or sum(weights)==0.0: continue
+                y_values.append(numpy.average(probabilities > threshold, weights=weights))
+                N_in_bin.append(numpy.sum(weights))
+                if errors:
+                    x_values.append((bin_edges[num + 1] + bin_edges[num]) / 2.)
+                else:
+                    x_values.append(numpy.mean(masses))
+    
+            x_values, y_values, N_in_bin = check_arrays(x_values, y_values, N_in_bin)
+            if errors:
+                result[threshold] = (x_values, y_values, numpy.sqrt(y_values * (1 - y_values) / N_in_bin), xerr)
+            else:
+                result[threshold] = (x_values, y_values)
+        return result
+
+    utils.get_efficiencies = get_efficiencies

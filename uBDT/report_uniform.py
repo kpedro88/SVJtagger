@@ -51,6 +51,8 @@ profile_plots()
 # fix bkg efficiency plots
 from mods import eff_target_class
 eff_target_class()
+from mods import get_eff_safe
+get_eff_safe()
 
 # show text on 2D plots
 from mods import plot_2D_text
