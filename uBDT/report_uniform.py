@@ -151,7 +151,7 @@ class RepPlot:
     def save(self, name):
         start_time = time.time()
         # separate these
-        if name=="CorrelationMatrix":
+        if "CorrelationMatrix" in name:
             for i,iplot in enumerate(self.plot.plots):
                 saveplot(name+"_"+labels[i],iplot,figsize=(7,7))
         else:
