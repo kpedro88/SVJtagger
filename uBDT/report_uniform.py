@@ -105,7 +105,7 @@ def kstest(barplots,labels):
     from scipy import stats
     for label, test in tests.iteritems():
         ks, pv = stats.ks_2samp(test["train"],test["test"])
-        test["result"] = ks
+        test["result"] = pv
     # update labels and combine into one plot
     ndata = OrderedDict()
     for dataset,barplot in sorted(barplots.iteritems()):
