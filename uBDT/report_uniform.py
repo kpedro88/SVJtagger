@@ -58,6 +58,10 @@ get_eff_safe()
 from mods import plot_2D_text
 plot_2D_text()
 
+# show AUC for ROC curves
+from mods import roc_with_auc
+roc_with_auc()
+
 # make sig vs bkg eff
 def mvaeffs(barplot,labels):
     effs = {}

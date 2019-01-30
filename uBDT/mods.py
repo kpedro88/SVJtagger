@@ -365,3 +365,53 @@ def get_eff_safe():
         return result
 
     utils.get_efficiencies = get_efficiencies
+
+def roc_with_auc():
+    from rep.report import ClassificationReport
+    from collections import OrderedDict
+    import numpy
+    from rep import plotting
+    from rep import utils
+    from sklearn.metrics import auc
+    
+    def roc(self, mask=None, signal_label=1, physics_notion=False):
+        """
+        Calculate roc functions for data and return roc plot object
+        :param mask: mask for data, which will be used
+        :type mask: None or numbers.Number or array-like or str or function(pandas.DataFrame)
+        :param bool physics_notion: if set to True, will show signal efficiency vs background rejection,
+            otherwise TPR vs FPR.
+        :rtype: plotting.FunctionsPlot
+        """
+        roc_curves = OrderedDict()
+        mask, = self._apply_mask(mask)
+
+        classes_labels = set(numpy.unique(self.target[mask]))
+        assert len(classes_labels) == 2 and signal_label in classes_labels, \
+            'Classes must be 2 instead of {}'.format(classes_labels)
+
+        for name, prediction in self.prediction.items():
+            labels_active = numpy.array(self.target[mask] == signal_label, dtype=int)
+            (tpr, tnr), _, _ = utils.calc_ROC(prediction[mask, signal_label], labels_active,
+                                              sample_weight=self.weight[mask])
+
+            if physics_notion:
+                auc_val = auc(tpr, tnr)
+                name2 = name+" ({:.3f})".format(auc_val)
+                roc_curves[name2] = (tpr, tnr)
+                xlabel = 'Signal sensitivity'
+                ylabel = 'Bg rejection eff (specificity)'
+            else:
+                auc_val = auc(1 - tnr, tpr)
+                name2 = name+" ({:.3f})".format(auc_val)
+                roc_curves[name] = (1 - tnr, tpr)
+                xlabel = 'false positive rate'
+                ylabel = 'true positive rate'
+
+        plot_fig = plotting.FunctionsPlot(roc_curves)
+        plot_fig.xlabel = xlabel
+        plot_fig.ylabel = ylabel
+        plot_fig.title = 'ROC curves'
+        return plot_fig
+
+    ClassificationReport.roc = roc
