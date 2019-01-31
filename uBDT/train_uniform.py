@@ -84,7 +84,7 @@ train_test_data = train_test_split(
     random_state=42
 )
 train_data = train_test_data[::2]
-test_data = train_test_data[::2]
+test_data = train_test_data[1::2]
 trainX = train_data[0]
 testX = test_data[0]
 trainY = train_data[1]
