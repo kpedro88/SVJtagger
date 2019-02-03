@@ -48,6 +48,12 @@ wts = {}
 for weight in uconfig.training.weights:
     wts[weight] = {}
 
+# set up signal id criteria
+if uconfig.training.signal_id_method=="two":
+    uconfig.features.spectator.append("index")
+elif uconfig.training.signal_id_method=="isHV":
+    uconfig.features.spectator.append("isHV")
+
 for dname,dlist in datasets.iteritems():
     dfs[dname] = pd.DataFrame()
     for weight in uconfig.training.weights:
@@ -59,9 +65,30 @@ for dname,dlist in datasets.iteritems():
         for weight in uconfig.training.weights:
             wts[weight][dname] = wts[weight][dname].append(f["tree"].pandas.df([uconfig.training.weights[weight]]))
 
+# apply signal id criteria
+# make sure to mask weights as well
+if uconfig.training.signal_id_method=="all":
+    # nothing to do
+    pass
+if uconfig.training.signal_id_method=="two":
+    for dname in datasets:
+        mask = (dfs[dname]["index"] < 2)
+        dfs[dname] = dfs[dname][mask]
+        for weight in uconfig.training.weights:
+            wts[weight][dname] = wts[weight][dname][mask]
+elif uconfig.training.signal_id_method=="isHV":
+    dname = "signal"
+    mask = (dfs[dname]["isHV"])
+    dfs[dname] = dfs[dname][mask]
+    for weight in uconfig.training.weights:
+        wts[weight][dname] = wts[weight][dname][mask]
+else:
+    raise ValueError("Unknown signal_id_method: "+uconfig.training.signal_id_method)
+
 # balance sig vs. bkg (make weights sum to 1)
+# AFTER applying signal id criteria
 for weight in uconfig.training.weights:
-    for dname in ["signal","background"]:
+    for dname in datasets:
         wts[weight][dname] /= np.sum(wts[weight][dname])
 
 # classifications

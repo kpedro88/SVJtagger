@@ -16,6 +16,7 @@ uconfig.features.uniform = ["pt"]
 uconfig.features.train = ["mult","girth","tau21","tau32","msd","deltaphi"]
 uconfig.features.spectator = ["mt","eta"]
 uconfig.training.size = 0.5
+uconfig.training.signal_id_method = "all" # options are all, two, isHV
 uconfig.training.weights = {
     "flat": "flatweightZ30",
     "proc": "procweight",
