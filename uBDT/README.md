@@ -40,6 +40,7 @@ python report_uniform.py
 
 Arguments:
 * `-d, --dir [dir]`: directory for train_uniform_reports.pkl file (required)
+* `-o, --outdir [dir]`: directory for output pngs (if different from input dir)
 * `-C, --config [file]`: config to provide parameters (default: test1)
 * `-c, --classifiers [list]`: plot only for specified classifier(s) (space-separated) (default = [] -> all)
 * `-t, --test {flat,proc}`: suffix for report names (test*, train*)

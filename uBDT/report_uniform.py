@@ -13,14 +13,15 @@ import matplotlib.pyplot as plt
 import cPickle as pickle
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from collections import OrderedDict
-import time
+import time, os
 
 # restore warnings
 reset_warn()
 
 # check arguments
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument("-d","--dir", dest="dir", type=str, default="", help="directory for train_uniform_reports.pkl file (required)")
+parser.add_argument("-d","--dir", dest="dir", type=str, default="", help="directory for train_uniform_reports.pkl input file (required)")
+parser.add_argument("-o","--outdir", dest="outdir", type=str, default="", help="directory for output pngs (if different from input dir)")
 parser.add_argument("-C","--config", dest="config", type=str, default="test1", help="config to provide parameters")
 parser.add_argument("-c","--classifiers", dest="classifiers", type=str, default=[], nargs='*', help="plot only for specified classifier(s) (space-separated)")
 parser.add_argument("-t","--test", dest="test", type=str, default="", choices=['flat','proc'], help="suffix for report names (test*, train*)")
@@ -31,6 +32,10 @@ args = parser.parse_args()
 
 if len(args.dir)==0:
     parser.error("Required argument: --dir")
+if len(args.outdir)==0:
+    args.outdir = args.dir
+elif not os.path.exists(args.outdir):
+    os.makedirs(args.outdir)
 
 test = "test"+args.test
 train = "train"+args.test
@@ -134,11 +139,11 @@ def saveplot(pname,plot,figsize=None):
         elif format=="pdf": fargs = {"bbox_inches":"tight"}
         fig.savefig(fname+"."+format,**fargs)
 
-def saveplots(plots,verbose=False):
+def saveplots(plots,config="",verbose=False):
     for pname,plot in plots.iteritems():
         if verbose: fprint(pname)
-        plot.create()
-        plot.save(args.dir+"/"+pname)
+        plot.create(config)
+        plot.save(args.outdir+"/"+pname)
 
 class RepPlot:
     def __init__(self, fun, args=[], kwargs={}):
@@ -146,9 +151,10 @@ class RepPlot:
         self.args = args
         self.kwargs = kwargs
 
-    def create(self):
+    def create(self,prefix=""):
         start_time = time.time()
         self.plot = self.fun(*self.args,**self.kwargs)
+        if len(prefix)>0: self.plot.title = prefix+" "+self.plot.title
         if args.verbose: fprint("\tCreation time: {:.2f} seconds".format(time.time() - start_time))
 
     # plot w/ matplotlib because most things not supported for ROOT/TMVA style
@@ -170,7 +176,8 @@ if args.verbose: fprint("Finish loading input")
 
 from mods import config_path
 config_path() 
-uconfig = getattr(__import__(args.config.replace(".py",""),fromlist="uconfig"),"uconfig")
+args.config = args.config.replace(".py","")
+uconfig = getattr(__import__(args.config,fromlist="uconfig"),"uconfig")
 
 # check for subset of classifiers
 if len(args.classifiers)>0:
@@ -217,7 +224,7 @@ plots["SpectatorEfficiencies"] = RepPlot(reports[test].efficiencies,kwargs={'fea
 plots["SpectatorProfiles"] = RepPlot(profiles,args=[reports[test]],kwargs={'features':uconfig.features.uniform+uconfig.features.spectator, 'bins':50, 'labels_dict':labels, 'grid_columns':len(uconfig.features.uniform+uconfig.features.spectator)})
 plots["VariablePdfs"] = RepPlot(reports[test].features_pdf,kwargs={'features':uconfig.features.train, 'labels_dict':labels, 'bins':50, 'grid_columns':3})
 
-saveplots(plots,args.verbose)
+saveplots(plots,"["+args.config+"]",args.verbose)
 
 # "derived" plots
 plots2 = OrderedDict()
@@ -232,4 +239,4 @@ preds = {
 }
 plots2["OverTrain"] = RepPlot(kstest,args=[preds,labels])
 
-saveplots(plots2,args.verbose)
+saveplots(plots2,"["+args.config+"]",args.verbose)
