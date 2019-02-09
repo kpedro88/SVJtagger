@@ -415,3 +415,21 @@ def roc_with_auc():
         return plot_fig
 
     ClassificationReport.roc = roc
+
+def flat_log_loss():
+    from hep_ml.losses import AbstractFlatnessLossFunction
+    from scipy.special import expit
+    import numpy
+    
+    def negative_gradient_log_loss(self, y_pred):
+        y_signed = self.y_signed
+        neg_gradient = self._compute_fl_derivatives(y_pred) * self.fl_coefficient
+        # adding LogLoss
+        neg_gradient += y_signed * self.sample_weight * expit(-y_signed * y_pred)
+
+        if not self.allow_wrong_signs:
+            neg_gradient = y_signed * numpy.clip(y_signed * neg_gradient, 0, 1e5)
+
+        return neg_gradient
+
+    AbstractFlatnessLossFunction.negative_gradient = negative_gradient_log_loss

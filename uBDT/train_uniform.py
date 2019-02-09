@@ -10,7 +10,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from rep.estimators import SklearnClassifier
 from hep_ml.commonutils import train_test_split
-from hep_ml import uboost, gradientboosting as ugb, losses
+from hep_ml import uboost as ugb
 from rep.metaml import ClassifiersFactory
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from collections import OrderedDict
@@ -142,6 +142,9 @@ if "bdt" in uconfig.training.algorithms:
 
 # uniform bdt
 if "ubdt" in uconfig.training.algorithms:
+    if uconfig.hyper.uloss == "log":
+        from mods import flat_log_loss
+        flat_log_loss()
     flatnessloss = ugb.BinFlatnessLossFunction(
         uconfig.features.uniform,
         fl_coefficient=uconfig.hyper.fl_coefficient,

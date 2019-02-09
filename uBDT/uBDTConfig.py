@@ -26,7 +26,7 @@ def ConfigFactory(name, fields, defaults=()):
 
 uDataset = ConfigFactory('uDataset',['path','signal','background'])
 uTraining = ConfigFactory('uTraining',['size','weights','algorithms','signal_id_method'])
-uHyper = ConfigFactory('uHyper',['max_depth','n_estimators','subsample','learning_rate','min_samples_leaf','fl_coefficient','power','uniform_label','n_bins'])
+uHyper = ConfigFactory('uHyper',['max_depth','n_estimators','subsample','learning_rate','min_samples_leaf','fl_coefficient','power','uniform_label','n_bins','uloss'])
 
 class uFeatures(ConfigFactory('uFeatures',['uniform','train','spectator'])):
     def all_vars(self):

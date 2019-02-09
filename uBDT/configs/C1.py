@@ -34,3 +34,4 @@ uconfig.hyper.fl_coefficient = 3
 uconfig.hyper.power = 1.3
 uconfig.hyper.uniform_label = 1
 uconfig.hyper.n_bins = 20
+uconfig.hyper.uloss = "exp"
