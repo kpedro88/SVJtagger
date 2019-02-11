@@ -10,7 +10,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from rep.estimators import SklearnClassifier
 from hep_ml.commonutils import train_test_split
-from hep_ml import uboost as ugb
+from hep_ml import uboost, gradientboosting as ugb, losses
 from rep.metaml import ClassifiersFactory
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from collections import OrderedDict
@@ -78,7 +78,7 @@ if uconfig.training.signal_id_method=="two":
             wts[weight][dname] = wts[weight][dname][mask]
 elif uconfig.training.signal_id_method=="isHV":
     dname = "signal"
-    mask = (dfs[dname]["isHV"])
+    mask = (dfs[dname]["isHV"]>0)
     dfs[dname] = dfs[dname][mask]
     for weight in uconfig.training.weights:
         wts[weight][dname] = wts[weight][dname][mask]
