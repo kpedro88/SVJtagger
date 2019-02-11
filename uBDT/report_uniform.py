@@ -154,7 +154,12 @@ class RepPlot:
     def create(self,prefix=""):
         start_time = time.time()
         self.plot = self.fun(*self.args,**self.kwargs)
-        if len(prefix)>0: self.plot.title = prefix+" "+self.plot.title
+        if len(prefix)>0:
+            if isinstance(self.plot,plotting.GridPlot):
+                for p in self.plot.plots:
+                    p.title = prefix+" "+p.title
+            else:
+                self.plot.title = prefix+" "+self.plot.title
         if args.verbose: fprint("\tCreation time: {:.2f} seconds".format(time.time() - start_time))
 
     # plot w/ matplotlib because most things not supported for ROOT/TMVA style
