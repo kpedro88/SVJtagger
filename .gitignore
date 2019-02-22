@@ -48,3 +48,10 @@
 /uBDT/plots
 /uBDT/trainings
 /uBDT/test
+
+# condor & log files
+*.stdout
+*.stderr
+*.condor
+jobExecCondor_*.jdl
+*.tar.gz
