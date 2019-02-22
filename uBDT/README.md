@@ -8,7 +8,7 @@ This is a uniform gradient-boosted BDT using flattening loss from hep_ml.
 wget https://raw.githubusercontent.com/kpedro88/SVJtagger/master/uBDT/setup.sh
 chmod +x setup.sh
 ./setup.sh
-cd CMSSW_10_3_0_pre5/src/SVJtagger/uBDT
+cd CMSSW_10_3_0/src/SVJtagger/uBDT
 cmsenv
 ```
 
