@@ -18,7 +18,7 @@ class jobSubmitterBDT(jobSubmitter):
     def generateExtra(self,job):
         super(jobSubmitterBDT,self).generateExtra(job)
         job.patterns.update([
-            ("JOBNAME","trainBDT_$(Process)_$(Cluster)"),
+            ("JOBNAME",job.name+"_$(Process)_$(Cluster)"),
             ("EXTRAINPUTS","input/args_"+job.name+"_$(Process).txt"),
             ("EXTRAARGS","-j "+job.name+" -p $(Process)"+" -i "+self.configs+" -o "+self.output),
         ])
@@ -26,7 +26,7 @@ class jobSubmitterBDT(jobSubmitter):
     def generateSubmission(self):
         # create protojob
         job = protoJob()
-        job.name = self.jobName
+        job.name = "trainBDT_"+self.configs
         self.generatePerJob(job)
         configs = self.configs.split(',')
         for iJob in range(len(configs)):
