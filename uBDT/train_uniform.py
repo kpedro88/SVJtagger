@@ -173,8 +173,8 @@ from mods import fit_separate_weights
 fit_separate_weights()
 
 parallel_profile = None
-if options.threads>1:
-    parallel_profile = "threads-"+str(options.threads)
+if args.threads>1:
+    parallel_profile = "threads-"+str(args.threads)
 classifiers.fit(trainX, trainY, sample_weight=weights, parallel_profile=parallel_profile)
 
 if args.verbose: fprint("Finish training")
