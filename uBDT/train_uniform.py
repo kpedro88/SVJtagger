@@ -1,3 +1,17 @@
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+
+# check arguments
+parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+parser.add_argument("-C","--config", dest="config", type=str, default="test1", help="config to provide parameters")
+parser.add_argument("-s","--size", dest="trainTestSize", type=float, default=-1, help="size for test and train datasets (override config)")
+parser.add_argument("-t","--threads", dest="threads", default=4, help="number of threads for parallel training")
+parser.add_argument("-d","--dir", dest="dir", type=str, default="", help="directory for output files (required)")
+parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, help="enable message printing")
+args = parser.parse_args()
+
+if len(args.dir)==0:
+    parser.error("Required argument: --dir")
+
 # get rid of sklearn warnings
 from mods import suppress_warn, reset_warn, fprint
 suppress_warn()
@@ -12,23 +26,11 @@ from rep.estimators import SklearnClassifier
 from hep_ml.commonutils import train_test_split
 from hep_ml import uboost, gradientboosting as ugb, losses
 from rep.metaml import ClassifiersFactory
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from collections import OrderedDict
 import os
 
 # restore warnings
 reset_warn()
-
-# check arguments
-parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument("-C","--config", dest="config", type=str, default="test1", help="config to provide parameters")
-parser.add_argument("-t","--train-test-size", dest="trainTestSize", type=float, default=-1, help="size for test and train datasets (override config)")
-parser.add_argument("-d","--dir", dest="dir", type=str, default="", help="directory for output files (required)")
-parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, help="enable message printing")
-args = parser.parse_args()
-
-if len(args.dir)==0:
-    parser.error("Required argument: --dir")
 
 from mods import config_path
 config_path()
@@ -170,7 +172,10 @@ if args.verbose: fprint("Start training")
 from mods import fit_separate_weights
 fit_separate_weights()
 
-classifiers.fit(trainX, trainY, sample_weight=weights, parallel_profile='threads-4')
+parallel_profile = None
+if options.threads>1:
+    parallel_profile = "threads-"+str(options.threads)
+classifiers.fit(trainX, trainY, sample_weight=weights, parallel_profile=parallel_profile)
 
 if args.verbose: fprint("Finish training")
 

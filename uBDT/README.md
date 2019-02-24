@@ -20,7 +20,8 @@ python train_uniform.py
 
 Arguments:
 * `-C, --config [file]`: config to provide parameters (default: test1)
-* `-t, --train-test-size [size]`: size for test and train datasets (override config) (default: -1)
+* `-s, --size [size]`: size for test and train datasets (override config) (default: -1)
+* `-t, --threads [threads]`: number of threads for parallel training (default: 4)
 * `-d, --dir [dir]`: directory for output files (required)
 * `-v, --verbose`: enable message printing (default: False)
 
