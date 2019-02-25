@@ -38,24 +38,25 @@ CONFIG=${CONFIGS[$PROCESS]}
 cd $CMSSW_BASE/src/SVJtagger/uBDT
 
 # run training
+OUTFILES=trainings_${CONFIG}
 THREADS=$(getFromClassAd RequestCpus)
-echo "python train_uniform.py -C $CONFIG -d trainings/$CONFIG -t $THREADS -v"
-python train_uniform.py -C $CONFIG -d trainings/$CONFIG -t $THREADS -v
+echo "python train_uniform.py -C $CONFIG -d $OUTFILES -t $THREADS -v"
+python train_uniform.py -C $CONFIG -d $OUTFILES -t $THREADS -v
 
 TRAINEXIT=$?
 
 if [[ $TRAINEXIT -ne 0 ]]; then
-	echo "exit code $TRAINEXT, skipping xrdcp
+	echo "exit code $TRAINEXIT, skipping xrdcp"
 	exit $TRAINEXIT
 fi
 
 # tar output
-OUTFILE=trainings_${CONFIG}.tar.gz
-tar -czf $OUTFILE trainings/$CONFIG -C trainings
+tar -czf ${OUTFILES}.tar.gz $OUTFILES
+xrdcp -f ${OUTFILES}.tar.gz ${OUTDIR}/${OUTFILES}.tar.gz
 
 XRDEXIT=$?
 if [[ $XRDEXIT -ne 0 ]]; then
-	rm ${OUTFILE}
+	rm ${OUTFILES}.tar.gz
 	echo "exit code $XRDEXIT, failure in xrdcp"
 	exit $XRDEXIT
 fi

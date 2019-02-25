@@ -19,7 +19,7 @@ class jobSubmitterBDT(jobSubmitter):
         super(jobSubmitterBDT,self).generateExtra(job)
         job.patterns.update([
             ("JOBNAME",job.name+"_$(Process)_$(Cluster)"),
-            ("EXTRAINPUTS","input/args_"+job.name+"_$(Process).txt"),
+            ("EXTRAINPUTS",""),
             ("EXTRAARGS","-j "+job.name+" -p $(Process)"+" -i "+self.configs+" -o "+self.output),
         ])
 
