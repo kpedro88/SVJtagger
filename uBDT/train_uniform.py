@@ -55,6 +55,10 @@ if uconfig.training.signal_id_method=="two":
     uconfig.features.spectator.append("index")
 elif uconfig.training.signal_id_method=="isHV":
     uconfig.features.spectator.append("isHV")
+elif uconfig.training.signal_id_method=="isHVtwo":
+    uconfig.features.spectator.extend(["index","isHV"])
+else:
+    raise ValueError("Unknown signal_id_method: "+uconfig.training.signal_id_method)
 
 for dname,dlist in datasets.iteritems():
     dfs[dname] = pd.DataFrame()
@@ -80,10 +84,17 @@ if uconfig.training.signal_id_method=="two":
             wts[weight][dname] = wts[weight][dname][mask]
 elif uconfig.training.signal_id_method=="isHV":
     dname = "signal"
-    mask = (dfs[dname]["isHV"]>0)
+    mask = (dfs[dname]["isHV"] > 0)
     dfs[dname] = dfs[dname][mask]
     for weight in uconfig.training.weights:
         wts[weight][dname] = wts[weight][dname][mask]
+elif uconfig.training.signal_id_method=="isHVtwo":
+    for dname in datasets:
+        mask = (dfs[dname]["index"] < 2)
+        if dname=="signal": mask = (dfs[dname]["index"] < 2) & (dfs[dname]["isHV"] > 0)
+        dfs[dname] = dfs[dname][mask]
+        for weight in uconfig.training.weights:
+            wts[weight][dname] = wts[weight][dname][mask]
 else:
     raise ValueError("Unknown signal_id_method: "+uconfig.training.signal_id_method)
 
