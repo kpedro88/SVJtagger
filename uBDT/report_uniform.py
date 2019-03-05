@@ -86,7 +86,13 @@ def mvaeffs(barplot,labels):
     # find max s/sqrt(s+b)
     signif = effs["S"]*ns/np.sqrt(effs["S"]*ns+effs["B"]*nb)
     imax = np.argmax(signif)
-    fprint("For {:d} signal and {:d} background events the maximum S/sqrt(S+B) is {:.2f} when cutting at {:.2f}".format(ns,nb,signif[imax],bin_edges[imax]))
+    fprint("For {:d} signal and {:d} background events the maximum S/sqrt(S+B) is {:.2f} when cutting at {:.2f} (bkg eff = {:.2f}, sig eff = {:.2f})".format(ns,nb,signif[imax],bin_edges[imax],effs["B"][imax],effs["S"][imax]))
+
+    # find different working points
+    wps = [0.2, 0.1, 0.05, 0.01]
+    for wp in wps:
+        idx = (np.abs(effs["B"] - wp)).argmin()
+        fprint("{:.2f} working point: discr = {:.2f} (bkg eff = {:.2f}, sig eff = {:.2f})".format(wp,bin_edges[idx],effs["B"][idx],effs["S"][idx]))
 
     # make plot
     eff_curves = OrderedDict()
