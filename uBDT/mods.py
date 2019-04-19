@@ -78,6 +78,9 @@ def plot_save_histo():
                         edgecolor=color, color=color, ecolor=color, linewidth=1,
                         width=bin_widths, label=label, alpha=0.5, hatch="/", fill=False)
 
+        # delete underlying data, no longer needed
+        self.data = {}
+
     BarPlot._plot = _plot_save_histo
 
 def fit_separate_weights():

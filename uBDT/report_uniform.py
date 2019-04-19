@@ -137,10 +137,12 @@ def kstest(barplots,labels):
     plot_fig.ylabel = barplots["test"].ylabel
     return plot_fig
 
-def saveplot(pname,plot,figsize=None):
-    plot.plot(new_plot=True,figsize=figsize)
+def saveplot(pname,plot,repplots,matplots,figsize=None):
+    repplots[pname] = plot
+    curve = plot.plot(new_plot=True,figsize=figsize)
     fig = plt.gcf()
-    fname = pname
+    matplots[pname] = fig
+    fname = args.outdir+"/"+pname
     if len(args.suffix)>0: fname += "_"+args.suffix
     for format in args.formats:
         fargs = {}
@@ -148,11 +150,11 @@ def saveplot(pname,plot,figsize=None):
         elif format=="pdf": fargs = {"bbox_inches":"tight"}
         fig.savefig(fname+"."+format,**fargs)
 
-def saveplots(plots,config="",verbose=False):
+def saveplots(plots,config,repplots,matplots,verbose=False):
     for pname,plot in plots.iteritems():
         if verbose: fprint(pname)
         plot.create(config)
-        plot.save(args.outdir+"/"+pname)
+        plot.save(pname,repplots,matplots)
 
 class RepPlot:
     def __init__(self, fun, args=[], kwargs={}):
@@ -172,14 +174,14 @@ class RepPlot:
         if args.verbose: fprint("\tCreation time: {:.2f} seconds".format(time.time() - start_time))
 
     # plot w/ matplotlib because most things not supported for ROOT/TMVA style
-    def save(self, name):
+    def save(self, name, repplots, matplots):
         start_time = time.time()
         # separate these
         if "CorrelationMatrix" in name:
             for i,iplot in enumerate(self.plot.plots):
-                saveplot(name+"_"+labels[i],iplot,figsize=(7,7))
+                saveplot(name+"_"+labels[i],iplot,repplots,matplots,figsize=(7,7))
         else:
-            saveplot(name,self.plot)
+            saveplot(name,self.plot,repplots,matplots)
         if args.verbose: fprint("\t  Saving time: {:.2f} seconds".format(time.time() - start_time))
 
 # get reports
@@ -222,6 +224,10 @@ def profiles(report,**kwargs):
         p.functions['QCD'] = (p.functions['QCD'][0][:-1],p.functions['QCD'][1][:-1])
     return plot
 
+# to serialize plots
+repplots = OrderedDict()
+matplots = OrderedDict()
+
 # generate plots
 plots = OrderedDict()
 
@@ -238,7 +244,7 @@ plots["SpectatorEfficiencies"] = RepPlot(reports[test].efficiencies,kwargs={'fea
 plots["SpectatorProfiles"] = RepPlot(profiles,args=[reports[test]],kwargs={'features':uconfig.features.uniform+uconfig.features.spectator, 'bins':50, 'labels_dict':labels, 'grid_columns':len(uconfig.features.uniform+uconfig.features.spectator)})
 plots["VariablePdfs"] = RepPlot(reports[test].features_pdf,kwargs={'features':uconfig.features.train, 'labels_dict':labels, 'bins':50, 'grid_columns':3})
 
-saveplots(plots,"["+args.config+"]",args.verbose)
+saveplots(plots,"["+args.config+"]",repplots,matplots,args.verbose)
 
 # "derived" plots
 plots2 = OrderedDict()
@@ -253,4 +259,11 @@ preds = {
 }
 plots2["OverTrain"] = RepPlot(kstest,args=[preds,labels])
 
-saveplots(plots2,"["+args.config+"]",args.verbose)
+saveplots(plots2,"["+args.config+"]",repplots,matplots,args.verbose)
+
+# pickle rep plots objects & matplotlib figures
+
+with open(args.outdir+"/repplots"+("_"+args.suffix if len(args.suffix)>0 else "")+".pkl",'wb') as outfile:
+    pickle.dump(repplots,outfile)
+with open(args.outdir+"/matplots"+("_"+args.suffix if len(args.suffix)>0 else "")+".pkl",'wb') as outfile:
+    pickle.dump(matplots,outfile)
