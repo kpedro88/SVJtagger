@@ -1,3 +1,7 @@
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+
 # get rid of sklearn warnings
 from mods import suppress_warn, reset_warn, fprint
 suppress_warn()
@@ -9,7 +13,6 @@ from rep.report.metrics import RocAuc
 from rep import plotting
 from hep_ml.metrics import BinBasedSDE, KnnBasedCvM
 import numpy as np
-import matplotlib.pyplot as plt
 import cPickle as pickle
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from collections import OrderedDict
