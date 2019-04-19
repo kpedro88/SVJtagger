@@ -52,11 +52,12 @@ for weight in uconfig.training.weights:
 
 # set up signal id criteria
 if uconfig.training.signal_id_method=="two":
-    uconfig.features.spectator.append("index")
+    if "index" not in uconfig.features.spectator: uconfig.features.spectator.append("index")
 elif uconfig.training.signal_id_method=="isHV":
-    uconfig.features.spectator.append("isHV")
+    if "isHV" not in uconfig.features.spectator: uconfig.features.spectator.append("isHV")
 elif uconfig.training.signal_id_method=="isHVtwo":
-    uconfig.features.spectator.extend(["index","isHV"])
+    for x in ["index","isHV"]:
+        if x not in uconfig.features.spectator: uconfig.features.spectator.append(x)
 else:
     raise ValueError("Unknown signal_id_method: "+uconfig.training.signal_id_method)
 
