@@ -6,6 +6,7 @@ class jobSubmitterBDT(jobSubmitter):
         
         parser.add_option("-C", "--configs", dest="configs", default="", help="input configuration(s), comma-separated (default = %default)")
         parser.add_option("-o", "--output", dest="output", default="", help="path to output directory in which root files will be stored (required) (default = %default)")
+        parser.add_option("-d", "--discard", dest="discard", default=False, action="store_true", help="make plots and discard large pkl files (default = %default)")
 
     def checkExtraOptions(self,options,parser):
         super(jobSubmitterBDT,self).checkExtraOptions(options,parser)
@@ -20,7 +21,7 @@ class jobSubmitterBDT(jobSubmitter):
         job.patterns.update([
             ("JOBNAME",job.name+"_$(Process)_$(Cluster)"),
             ("EXTRAINPUTS",""),
-            ("EXTRAARGS","-j "+job.name+" -p $(Process)"+" -i "+self.configs+" -o "+self.output),
+            ("EXTRAARGS","-j "+job.name+" -p $(Process)"+" -i "+self.configs+(" -d" if self.discard else "")+" -o "+self.output),
         ])
 
     def generateSubmission(self):
