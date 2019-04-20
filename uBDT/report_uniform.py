@@ -21,29 +21,6 @@ import time, os
 # restore warnings
 reset_warn()
 
-# check arguments
-parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument("-d","--dir", dest="dir", type=str, default="", help="directory for train_uniform_reports.pkl input file (required)")
-parser.add_argument("-o","--outdir", dest="outdir", type=str, default="", help="directory for output pngs (if different from input dir)")
-parser.add_argument("-C","--config", dest="config", type=str, default="test1", help="config to provide parameters")
-parser.add_argument("-c","--classifiers", dest="classifiers", type=str, default=[], nargs='*', help="plot only for specified classifier(s) (space-separated)")
-parser.add_argument("-t","--test", dest="test", type=str, default="", choices=['flat','proc'], help="suffix for report names (test*, train*)")
-parser.add_argument("-s","--suffix", dest="suffix", type=str, default="", help="suffix for plots")
-parser.add_argument("-f","--formats", dest="formats", type=str, default=["png"], nargs='*', help="print plots in specified format(s) (space-separated)")
-parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, help="enable message printing")
-args = parser.parse_args()
-
-if len(args.dir)==0:
-    parser.error("Required argument: --dir")
-if len(args.outdir)==0:
-    args.outdir = args.dir
-elif not os.path.exists(args.outdir):
-    os.makedirs(args.outdir)
-
-test = "test"+args.test
-train = "train"+args.test
-labels = {0: "QCD", 1: "signal"}
-
 # change default sizing
 from mods import plot_size
 plot_size()
@@ -184,33 +161,6 @@ class RepPlot:
             saveplot(name,self.plot,repplots,matplots)
         if args.verbose: fprint("\t  Saving time: {:.2f} seconds".format(time.time() - start_time))
 
-# get reports
-if args.verbose: fprint("Start loading input")
-with open(args.dir+"/train_uniform_reports.pkl",'rb') as infile:
-    reports = pickle.load(infile)
-if args.verbose: fprint("Finish loading input")
-
-from mods import config_path
-config_path() 
-args.config = args.config.replace(".py","")
-uconfig = getattr(__import__(args.config,fromlist="uconfig"),"uconfig")
-
-# check for subset of classifiers
-if len(args.classifiers)>0:
-    for rname,report in reports.iteritems():
-        est_old = report.estimators
-        pred_old = report.prediction
-        est_new = ClassifiersFactory()
-        pred_new = OrderedDict()
-        for classifier in args.classifiers:
-            if classifier in est_old:
-                est_new[classifier] = est_old[classifier]
-                pred_new[classifier] = pred_old[classifier]
-            else:
-                raise ValueError("Requested classifier "+classifier+" not found in report "+rname)
-        report.estimators = est_new
-        report.prediction = pred_new
-
 # need to reset classifier features to only trained features (eliminating spectators)
 def feature_importance(report,columns):
     for name, estimator in report.estimators.items():
@@ -224,46 +174,97 @@ def profiles(report,**kwargs):
         p.functions['QCD'] = (p.functions['QCD'][0][:-1],p.functions['QCD'][1][:-1])
     return plot
 
-# to serialize plots
-repplots = OrderedDict()
-matplots = OrderedDict()
+if __name__=="__main__":
+    # check arguments
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-d","--dir", dest="dir", type=str, default="", help="directory for train_uniform_reports.pkl input file (required)")
+    parser.add_argument("-o","--outdir", dest="outdir", type=str, default="", help="directory for output pngs (if different from input dir)")
+    parser.add_argument("-C","--config", dest="config", type=str, default="test1", help="config to provide parameters")
+    parser.add_argument("-c","--classifiers", dest="classifiers", type=str, default=[], nargs='*', help="plot only for specified classifier(s) (space-separated)")
+    parser.add_argument("-t","--test", dest="test", type=str, default="", choices=['flat','proc'], help="suffix for report names (test*, train*)")
+    parser.add_argument("-s","--suffix", dest="suffix", type=str, default="", help="suffix for plots")
+    parser.add_argument("-f","--formats", dest="formats", type=str, default=["png"], nargs='*', help="print plots in specified format(s) (space-separated)")
+    parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, help="enable message printing")
+    args = parser.parse_args()
 
-# generate plots
-plots = OrderedDict()
+    if len(args.dir)==0:
+        parser.error("Required argument: --dir")
+    if len(args.outdir)==0:
+        args.outdir = args.dir
+    elif not os.path.exists(args.outdir):
+        os.makedirs(args.outdir)
 
-plots["CorrelationMatrix"] = RepPlot(reports[test].features_correlation_matrix_by_class,kwargs={'features':uconfig.features.train, 'labels_dict':labels, 'vmin':-100, 'vmax':100})
-plots["FeatureImportance"] = RepPlot(feature_importance,args=[reports[test],len(report.estimators)])
-# learning curves are really slow, disabled for now
-#plots["LearningCurveCvM"] = RepPlot(reports[test].learning_curve,args=[KnnBasedCvM(uconfig.features.uniform, uniform_label=1)])
-#plots["LearningCurveRocAuc"] = RepPlot(reports[test].learning_curve,args=[RocAuc()],kwargs={'steps':1})
-#plots["LearningCurveSDE"] = RepPlot(reports[test].learning_curve,args=[BinBasedSDE(uconfig.features.uniform, uniform_label=1)])
-plots["PredictionTest"] = RepPlot(reports[train].prediction_pdf,kwargs={'labels_dict':labels, 'bins':50, 'plot_type':'bar'})
-plots["PredictionTrain"] = RepPlot(reports[test].prediction_pdf,kwargs={'labels_dict':labels, 'bins':50, 'plot_type':'bar'})
-plots["RocCurve"] = RepPlot(reports[test].roc,kwargs={'physics_notion':True})
-plots["SpectatorEfficiencies"] = RepPlot(reports[test].efficiencies,kwargs={'features':uconfig.features.uniform+uconfig.features.spectator, 'bins':50, 'labels_dict':labels})
-plots["SpectatorProfiles"] = RepPlot(profiles,args=[reports[test]],kwargs={'features':uconfig.features.uniform+uconfig.features.spectator, 'bins':50, 'labels_dict':labels, 'grid_columns':len(uconfig.features.uniform+uconfig.features.spectator)})
-plots["VariablePdfs"] = RepPlot(reports[test].features_pdf,kwargs={'features':uconfig.features.train, 'labels_dict':labels, 'bins':50, 'grid_columns':3})
+    test = "test"+args.test
+    train = "train"+args.test
+    labels = {0: "QCD", 1: "signal"}
 
-saveplots(plots,"["+args.config+"]",repplots,matplots,args.verbose)
+    # get reports
+    if args.verbose: fprint("Start loading input")
+    with open(args.dir+"/train_uniform_reports.pkl",'rb') as infile:
+        reports = pickle.load(infile)
+    if args.verbose: fprint("Finish loading input")
 
-# "derived" plots
-plots2 = OrderedDict()
+    from mods import config_path
+    config_path() 
+    args.config = args.config.replace(".py","")
+    uconfig = getattr(__import__(args.config,fromlist="uconfig"),"uconfig")
 
-# this uses the results from plots["PredictionTest"].plot.plot()
-plots2["MvaEffs"] = RepPlot(mvaeffs,args=[plots["PredictionTest"].plot,labels])
+    # check for subset of classifiers
+    if len(args.classifiers)>0:
+        for rname,report in reports.iteritems():
+            est_old = report.estimators
+            pred_old = report.prediction
+            est_new = ClassifiersFactory()
+            pred_new = OrderedDict()
+            for classifier in args.classifiers:
+                if classifier in est_old:
+                    est_new[classifier] = est_old[classifier]
+                    pred_new[classifier] = pred_old[classifier]
+                else:
+                    raise ValueError("Requested classifier "+classifier+" not found in report "+rname)
+            report.estimators = est_new
+            report.prediction = pred_new
 
-# this uses the results from both prediction plots
-preds = {
-    "train": plots["PredictionTrain"].plot,
-    "test": plots["PredictionTest"].plot
-}
-plots2["OverTrain"] = RepPlot(kstest,args=[preds,labels])
+    # to serialize plots
+    repplots = OrderedDict()
+    matplots = OrderedDict()
 
-saveplots(plots2,"["+args.config+"]",repplots,matplots,args.verbose)
+    # generate plots
+    plots = OrderedDict()
 
-# pickle rep plots objects & matplotlib figures
+    plots["CorrelationMatrix"] = RepPlot(reports[test].features_correlation_matrix_by_class,kwargs={'features':uconfig.features.train, 'labels_dict':labels, 'vmin':-100, 'vmax':100})
+    plots["FeatureImportance"] = RepPlot(feature_importance,args=[reports[test],len(report.estimators)])
+    # learning curves are really slow, disabled for now
+    #plots["LearningCurveCvM"] = RepPlot(reports[test].learning_curve,args=[KnnBasedCvM(uconfig.features.uniform, uniform_label=1)])
+    #plots["LearningCurveRocAuc"] = RepPlot(reports[test].learning_curve,args=[RocAuc()],kwargs={'steps':1})
+    #plots["LearningCurveSDE"] = RepPlot(reports[test].learning_curve,args=[BinBasedSDE(uconfig.features.uniform, uniform_label=1)])
+    plots["PredictionTest"] = RepPlot(reports[train].prediction_pdf,kwargs={'labels_dict':labels, 'bins':50, 'plot_type':'bar'})
+    plots["PredictionTrain"] = RepPlot(reports[test].prediction_pdf,kwargs={'labels_dict':labels, 'bins':50, 'plot_type':'bar'})
+    plots["RocCurve"] = RepPlot(reports[test].roc,kwargs={'physics_notion':True})
+    plots["SpectatorEfficiencies"] = RepPlot(reports[test].efficiencies,kwargs={'features':uconfig.features.uniform+uconfig.features.spectator, 'bins':50, 'labels_dict':labels})
+    plots["SpectatorProfiles"] = RepPlot(profiles,args=[reports[test]],kwargs={'features':uconfig.features.uniform+uconfig.features.spectator, 'bins':50, 'labels_dict':labels, 'grid_columns':len(uconfig.features.uniform+uconfig.features.spectator)})
+    plots["VariablePdfs"] = RepPlot(reports[test].features_pdf,kwargs={'features':uconfig.features.train, 'labels_dict':labels, 'bins':50, 'grid_columns':3})
 
-with open(args.outdir+"/repplots"+("_"+args.suffix if len(args.suffix)>0 else "")+".pkl",'wb') as outfile:
-    pickle.dump(repplots,outfile)
-with open(args.outdir+"/matplots"+("_"+args.suffix if len(args.suffix)>0 else "")+".pkl",'wb') as outfile:
-    pickle.dump(matplots,outfile)
+    saveplots(plots,"["+args.config+"]",repplots,matplots,args.verbose)
+
+    # "derived" plots
+    plots2 = OrderedDict()
+
+    # this uses the results from plots["PredictionTest"].plot.plot()
+    plots2["MvaEffs"] = RepPlot(mvaeffs,args=[plots["PredictionTest"].plot,labels])
+
+    # this uses the results from both prediction plots
+    preds = {
+        "train": plots["PredictionTrain"].plot,
+        "test": plots["PredictionTest"].plot
+    }
+    plots2["OverTrain"] = RepPlot(kstest,args=[preds,labels])
+
+    saveplots(plots2,"["+args.config+"]",repplots,matplots,args.verbose)
+
+    # pickle rep plots objects & matplotlib figures
+
+    with open(args.outdir+"/repplots"+("_"+args.suffix if len(args.suffix)>0 else "")+".pkl",'wb') as outfile:
+        pickle.dump(repplots,outfile)
+    with open(args.outdir+"/matplots"+("_"+args.suffix if len(args.suffix)>0 else "")+".pkl",'wb') as outfile:
+        pickle.dump(matplots,outfile)
