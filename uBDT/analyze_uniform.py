@@ -122,14 +122,14 @@ if __name__=="__main__":
     else:
         configs = args.config.split(",")
 
-    data_dict = {
-        "name": [],
-        "auc": [],
-        "sigeff": [],
-        "sigovertrain": [],
-        "bkgovertrain": [],
-        "bkgflatness": [],
-    }
+    data_dict = OrderedDict([
+        ("name", []),
+        ("auc", []),
+        ("sigeff", []),
+        ("sigovertrain", []),
+        ("bkgovertrain", []),
+        ("bkgflatness", []),
+    ])
     # add extra params for grid
     if is_grid:
         data_dict["number"] = []
