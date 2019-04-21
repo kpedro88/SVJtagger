@@ -59,9 +59,9 @@ def mvaeffs(barplot,labels):
         sb = ""
         if labels[0] in label: sb = "B"
         elif labels[1] in label: sb = "S"
-        bin_edges = histo[1]
-        norm = np.sum(histo[0],dtype=float)
-        effs[sb] = np.flip(np.cumsum(np.flip(histo[0]),dtype=float))/norm
+        bin_edges = histo[0][1]
+        norm = np.sum(histo[0][0],dtype=float)
+        effs[sb] = np.flip(np.cumsum(np.flip(histo[0][0]),dtype=float))/norm
     
     # find max s/sqrt(s+b)
     signif = effs["S"]*ns/np.sqrt(effs["S"]*ns+effs["B"]*nb)
@@ -95,7 +95,7 @@ def kstest(barplots,labels):
         tests[label] = {"result": 0}
     for dataset,barplot in barplots.iteritems():
         for label,histo in barplot.histo.iteritems():
-            tests[getlabel(label,labels)][dataset] = histo[0]
+            tests[getlabel(label,labels)][dataset] = histo[0][0]
     # conduct tests
     from scipy import stats
     for label, test in tests.iteritems():
@@ -103,13 +103,16 @@ def kstest(barplots,labels):
         test["result"] = pv
     # update labels and combine into one plot
     ndata = OrderedDict()
+    nhisto = OrderedDict()
     for dataset,barplot in sorted(barplots.iteritems()):
-        for label,data in sorted(barplot.data.iteritems()):
+        for label,histo in sorted(barplot.histo.iteritems()):
             nlabel = label+" ("+dataset+")"
             if dataset=="test": nlabel += " (ks = "+"{:.3f}".format(tests[getlabel(label,labels)]["result"])+")"
-            ndata[nlabel] = (data[0], data[1], 'not_filled' if dataset=="train" else 'filled')
+            ndata[nlabel] = ([], [], 'not_filled' if dataset=="train" else 'filled')
+            nhisto[nlabel] = histo
     # plot together
     plot_fig = plotting.BarPlot(ndata,bins=barplots["test"].bins,normalization=barplots["test"].normalization,value_range=barplots["test"].value_range)
+    plot_fig.histo = nhisto
     plot_fig.xlabel = barplots["test"].xlabel
     plot_fig.ylabel = barplots["test"].ylabel
     return plot_fig
