@@ -1,7 +1,9 @@
 # set up path for configs
-def config_path():
+def config_path(basedir=""):
     import os,sys
-    sys.path.append(os.getcwd()+"/configs")
+    if len(basedir)==0: basedir = os.getcwd()
+    sys.path.append(basedir+"/configs")
+    sys.path.append(basedir+"/configs/grids")
 
 # this is the only way to get rid of sklearn warnings
 def suppress_warn():
@@ -407,7 +409,7 @@ def roc_with_auc():
             else:
                 auc_val = auc(1 - tnr, tpr)
                 name2 = name+" ({:.3f})".format(auc_val)
-                roc_curves[name] = (1 - tnr, tpr)
+                roc_curves[name2] = (1 - tnr, tpr)
                 xlabel = 'false positive rate'
                 ylabel = 'true positive rate'
 

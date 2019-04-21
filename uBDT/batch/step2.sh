@@ -6,9 +6,10 @@ export INPUT=""
 export OUTDIR=""
 export OPTIND=1
 export DISCARD=0
+export GRID=0
 while [[ $OPTIND -lt $# ]]; do
 	# getopts in silent mode, don't exit on errors
-	getopts ":j:p:i:o:d" opt || status=$?
+	getopts ":j:p:i:o:dg" opt || status=$?
 	case "$opt" in
 		j) export JOBNAME=$OPTARG
 		;;
@@ -19,6 +20,8 @@ while [[ $OPTIND -lt $# ]]; do
 		i) export INPUT=$OPTARG
 		;;
 		d) export DISCARD=1
+		;;
+		g) export GRID=1
 		;;
 		# keep going if getopts had an error
 		\? | :) OPTIND=$((OPTIND+1))
@@ -34,12 +37,17 @@ echo "PROCESS:    $PROCESS"
 echo "DISCARD:    $DISCARD"
 echo ""
 
-# pick out config for this job
-CONFIGS=()
-IFS="," read -a CONFIGS <<< "$INPUT"
-CONFIG=${CONFIGS[$PROCESS]}
-
 cd $CMSSW_BASE/src/SVJtagger/uBDT
+
+# pick out config for this job
+CONFIG=""
+if [ "$GRID" -eq 0 ]; then
+	CONFIGS=()
+	IFS="," read -a CONFIGS <<< "$INPUT"
+	CONFIG=${CONFIGS[$PROCESS]}
+else
+	CONFIG=$(python -c 'from mods import config_path; config_path(); from makeGrid import getPointName; print getPointName('$PROCESS',"'$INPUT'")')
+fi
 
 # run training
 OUTFILES=trainings_${CONFIG}
