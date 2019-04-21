@@ -53,7 +53,7 @@ fi
 OUTFILES=trainings_${CONFIG}
 THREADS=$(getFromClassAd RequestCpus)
 echo "python train_uniform.py -C $CONFIG -d $OUTFILES -t $THREADS -v"
-python train_uniform.py -C $CONFIG -d $OUTFILES -t $THREADS -v -s 0.01
+python train_uniform.py -C $CONFIG -d $OUTFILES -t $THREADS -v
 
 TRAINEXIT=$?
 
