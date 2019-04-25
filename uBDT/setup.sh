@@ -17,7 +17,7 @@ git clone git@github.com:kpedro88/SVJtagger.git
 cd SVJtagger/uBDT
 
 # get sklearn -> TMVA converter
-git clone git@github.com:yuraic/koza4ok.git
+git clone git@github.com:kpedro88/koza4ok.git
 ln -s koza4ok/skTMVA .
 
 # extra batch setup
