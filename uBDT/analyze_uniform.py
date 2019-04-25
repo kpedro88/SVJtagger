@@ -80,8 +80,7 @@ def flatness(gridplot,label,varname,index=0):
             return abs(corr[0][1])
     return 0.
 
-def saveplot(pname,plot,figsize=None):
-    curve = plot.plot(new_plot=True,figsize=figsize)
+def saveplot(pname):
     fig = plt.gcf()
     fname = args.outdir+"/"+pname
     if len(args.suffix)>0: fname += "_"+args.suffix
@@ -90,46 +89,50 @@ def saveplot(pname,plot,figsize=None):
         if format=="png": fargs = {"dpi":100}
         elif format=="pdf": fargs = {"bbox_inches":"tight"}
         fig.savefig(fname+"."+format,**fargs)
+    plt.close()
 
 if __name__=="__main__":
     # check arguments
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument("-d","--dir", dest="dir", type=str, default="", help="directory for repplots pkl input file (required)")
     parser.add_argument("-o","--outdir", dest="outdir", type=str, default="", help="directory for output (if different from input dir)")
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-C","--config", dest="config", type=str, default="", help="configs to compare")
-    group.add_argument("-G","--grid", dest="grid", type=int, default=-1, help="grid version")
+    parser.add_argument("-C","--config", dest="config", type=str, default="", help="configs to compare")
+    parser.add_argument("-G","--grid", dest="grid", type=int, default=-1, help="grid version")
     parser.add_argument("-c","--classifier", dest="classifier", type=str, default="", help="plot only for specified classifier")
     parser.add_argument("-s","--suffix", dest="suffix", type=str, default="", help="suffix for plots")
+    parser.add_argument("-q","--query", dest="query", type=str, default="", help="query for dataframe (selection string)")
+    parser.add_argument("-n","--topn", dest="topn", type=int, default=20, help="print N top results for each metric")
     parser.add_argument("-f","--formats", dest="formats", type=str, default=["png"], nargs='*', help="print plots in specified format(s) (space-separated)")
     parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, help="enable message printing")
     args = parser.parse_args()
 
     if len(args.dir)==0:
         parser.error("Required argument: --dir")
-    if len(args.outdir)==0:
-        args.outdir = args.dir
-    elif not os.path.exists(args.outdir):
-        os.makedirs(args.outdir)
 
     labels = {0: "QCD", 1: "signal"}
     configs = []
     is_grid = False
     if args.grid>0:
-        from makeGrid import getPointName, makeGridPoints
+        from makeGrid import getGridName, getPointName, makeGridPoints
         configs = makeGridPoints(args.grid)
+        gridname = getGridName(args.config,args.grid)
         is_grid = True
     else:
         configs = args.config.split(",")
 
+    if len(args.outdir)==0:
+        args.outdir = args.dir
+    if is_grid:
+        args.outdir += "/"+gridname
+    if not os.path.exists(args.outdir):
+        os.makedirs(args.outdir)
+
+    metrics = ["auc","sigeff","sigovertrain","bkgovertrain","bkgflatness"]
     data_dict = OrderedDict([
-        ("name", []),
-        ("auc", []),
-        ("sigeff", []),
-        ("sigovertrain", []),
-        ("bkgovertrain", []),
-        ("bkgflatness", []),
+        ("name", [])
     ])
+    for metric in metrics:
+        data_dict[metric] = []
     # add extra params for grid
     if is_grid:
         data_dict["number"] = []
@@ -141,8 +144,12 @@ if __name__=="__main__":
     # populate data dict from plots
     for ic,config in enumerate(configs):
         configname = config
-        if is_grid: configname = getPointName(ic,args.config,args.grid)
-        with open(args.dir+"/"+configname+"/repplots_"+args.suffix+".pkl",'rb') as infile:
+        if is_grid: configname = getPointName(ic,gridname)
+        plotfile = args.dir+"/"+configname+"/repplots_"+args.suffix+".pkl"
+        if not os.path.isfile(plotfile):
+            if args.verbose: print "Skipping "+config
+            continue
+        with open(plotfile) as infile:
             repplots = pickle.load(infile)
         data_dict["name"].append(configname)
         # grid-specific data
@@ -159,5 +166,37 @@ if __name__=="__main__":
         data_dict["bkgflatness"].append(flatness(repplots["SpectatorEfficiencies"],"QCD","mt"))
 
     # convert dict to pandas df
-    df = pd.DataFrame.from_dict(data_dict)
-    print df
+    df_all = pd.DataFrame.from_dict(data_dict)
+    dfs = OrderedDict([
+        ("all", df_all),
+    ])
+    if len(args.query)>0:
+        df_cut = df_all.query(args.query)
+        dfs["cut"] = df_cut
+    if is_grid:
+        topfilename = gridname+"_top"+str(args.topn)+"_"+args.suffix+".txt"
+        with open(topfilename,'w') as topfile:
+            for dtype,df in dfs.iteritems():
+                topfile.write(dtype+"\n")
+                for metric in metrics:
+                    do_ascending = True if metric is "bkgflatness" else False
+                    topfile.write(metric+"\n")
+                    topfile.write(df.sort_values(by=[metric],ascending=do_ascending)[:args.topn].to_string()+"\n")
+                    # plot the metric for all grid points
+                    if is_grid:
+                        ax = df.plot.scatter(x="number",y=metric)
+                        saveplot(metric+"_vs_number_"+dtype)
+                        columns = 2
+                        rows = (len(gridvars)+columns-1)//columns
+                        plt.figure()
+                        plt.tight_layout(pad=1.5)
+                        for igv,gridvar in enumerate(gridvars.keys()):
+                            ax2 = plt.subplot(rows,columns,igv+1)
+                            df.plot.scatter(x=gridvar,y=metric,ax=ax2)
+                        saveplot(metric+"_vs_gridvars_"+dtype)
+                topfile.write("\n")
+            print "Wrote "+topfilename
+    else:
+        for dtype,df in dfs.iteritems():
+            print dtype
+            print df
