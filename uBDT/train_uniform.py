@@ -42,6 +42,12 @@ datasets = {
     "signal": uconfig.dataset.signal,
     "background": uconfig.dataset.background,
 }
+categories = {}
+for dname in datasets:
+    for cname in datasets[dname]:
+        if cname in categories: raise ValueError("Repeated dataset category name: "+cname)
+        if cname in datasets: raise ValueError("Reserved dataset name used as category: "+cname)
+        categories[cname] = datasets[dname][cname]
 
 # load and create dataframes
 dfs = {}
@@ -61,16 +67,20 @@ elif uconfig.training.signal_id_method=="isHVtwo":
 else:
     raise ValueError("Unknown signal_id_method: "+uconfig.training.signal_id_method)
 
-for dname,dlist in datasets.iteritems():
-    dfs[dname] = pd.DataFrame()
+for cname,clist in categories.iteritems():
+    dfs[cname] = pd.DataFrame()
     for weight in uconfig.training.weights:
-        wts[weight][dname] = pd.DataFrame()
-    for sample in dlist:
+        wts[weight][cname] = pd.DataFrame()
+    for sample in clist:
         if args.verbose: print sample
         f = up.open(uconfig.dataset.path+"tree_"+sample+".root")
-        dfs[dname] = dfs[dname].append(f["tree"].pandas.df(uconfig.features.all_vars()))
+        dfs[cname] = dfs[cname].append(f["tree"].pandas.df(uconfig.features.all_vars()))
         for weight in uconfig.training.weights:
-            wts[weight][dname] = wts[weight][dname].append(f["tree"].pandas.df([uconfig.training.weights[weight]]))
+            weightname = uconfig.training.weights[weight]
+            weightlist = f["tree"].pandas.df([weightname])
+            if weightname=="procweight" and uconfig.training.signal_weight_method=="constant":
+                weightlist = pd.DataFrame(np.ones(shape=(len(weightlist),1)), columns=["procweight"])
+            wts[weight][cname] = wts[weight][cname].append(weightlist)
 
 # apply signal id criteria
 # make sure to mask weights as well
@@ -78,29 +88,46 @@ if uconfig.training.signal_id_method=="all":
     # nothing to do
     pass
 if uconfig.training.signal_id_method=="two":
-    for dname in datasets:
-        mask = (dfs[dname]["index"] < 2)
-        dfs[dname] = dfs[dname][mask]
+    for cname in categories:
+        mask = (dfs[cname]["index"] < 2)
+        dfs[cname] = dfs[cname][mask]
         for weight in uconfig.training.weights:
-            wts[weight][dname] = wts[weight][dname][mask]
+            wts[weight][cname] = wts[weight][cname][mask]
 elif uconfig.training.signal_id_method=="isHV":
     dname = "signal"
-    mask = (dfs[dname]["isHV"] > 0)
-    dfs[dname] = dfs[dname][mask]
-    for weight in uconfig.training.weights:
-        wts[weight][dname] = wts[weight][dname][mask]
+    for cname in datasets[dname]:
+        mask = (dfs[cname]["isHV"] > 0)
+        dfs[cname] = dfs[cname][mask]
+        for weight in uconfig.training.weights:
+            wts[weight][cname] = wts[weight][cname][mask]
 elif uconfig.training.signal_id_method=="isHVtwo":
     for dname in datasets:
-        mask = (dfs[dname]["index"] < 2)
-        if dname=="signal": mask = (dfs[dname]["index"] < 2) & (dfs[dname]["isHV"] > 0)
-        dfs[dname] = dfs[dname][mask]
-        for weight in uconfig.training.weights:
-            wts[weight][dname] = wts[weight][dname][mask]
+        for cname in datasets[dname]:
+            mask = (dfs[cname]["index"] < 2)
+            if dname=="signal": mask = (dfs[cname]["index"] < 2) & (dfs[cname]["isHV"] > 0)
+            dfs[cname] = dfs[cname][mask]
+            for weight in uconfig.training.weights:
+                wts[weight][cname] = wts[weight][cname][mask]
 else:
     raise ValueError("Unknown signal_id_method: "+uconfig.training.signal_id_method)
 
-# balance sig vs. bkg (make weights sum to 1)
+# balance each sig and bkg category (make weights sum to 1)
 # AFTER applying signal id criteria
+for weight in uconfig.training.weights:
+    for cname in categories:
+        wts[weight][cname] /= np.sum(wts[weight][cname])
+
+# combine categories into overall sig and bkg
+for dname in datasets:
+    dfs[dname] = pd.DataFrame()
+    for weight in uconfig.training.weights:
+        wts[weight][dname] = pd.DataFrame()
+    for cname in datasets[dname]:
+        dfs[dname] = dfs[dname].append(dfs[cname])
+        for weight in uconfig.training.weights:
+            wts[weight][dname] = wts[weight][dname].append(wts[weight][cname])
+
+# balance combined sig and bkg
 for weight in uconfig.training.weights:
     for dname in datasets:
         wts[weight][dname] /= np.sum(wts[weight][dname])

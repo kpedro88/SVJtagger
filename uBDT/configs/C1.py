@@ -1,8 +1,8 @@
 from uBDTConfig import uconfig
 
 uconfig.dataset.path = "root://cmseos.fnal.gov//store/user/lpcsusyhad/SVJ2017/Run2ProductionV16/Skims/tree_dijetmtdetahadmf-train-flatsig/"
-uconfig.dataset.signal = ["SVJ_mZprime-3000_mDark-20_rinv-0.3_alpha-peak_MC2017"]
-uconfig.dataset.background =  [
+uconfig.dataset.signal = {"SVJ": ["SVJ_mZprime-3000_mDark-20_rinv-0.3_alpha-peak_MC2017"]}
+uconfig.dataset.background =  {"QCD": [
     "QCD_Pt_300to470_MC2017",
     "QCD_Pt_470to600_MC2017",
     "QCD_Pt_600to800_MC2017",
@@ -11,12 +11,13 @@ uconfig.dataset.background =  [
     "QCD_Pt_1400to1800_MC2017",
     "QCD_Pt_1800to2400_MC2017",
     "QCD_Pt_2400to3200_MC2017",
-]
+]}
 uconfig.features.uniform = ["pt"]
 uconfig.features.train = ["mult","girth","tau21","tau32","msd","deltaphi","axisminor"]
 uconfig.features.spectator = ["mt","eta"]
 uconfig.training.size = 0.5
 uconfig.training.signal_id_method = "two"
+uconfig.training.signal_weight_method = "default"
 uconfig.training.weights = {
     "flat": "flatweightZ30",
     "proc": "procweight",
