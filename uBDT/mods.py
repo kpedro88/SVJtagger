@@ -175,7 +175,7 @@ def profile_plots():
         y_err = []
         for num, (masses, probabilities, weights) in enumerate(bins_data):
             y_values.append(numpy.average(probabilities, weights=weights) if len(weights)>0 and sum(weights)>0.0 else 0)
-            y_err.append(numpy.sqrt(numpy.cov(probabilities,aweights=weights,ddof=0)/numpy.sum(weights)) if len(weights)>0 and sum(weights)>0.0 else 0)
+            y_err.append(numpy.sqrt(numpy.cov(probabilities,aweights=numpy.abs(weights),ddof=0)/numpy.sum(weights)) if len(weights)>0 and sum(weights)>0.0 else 0)
             N_in_bin.append(numpy.sum(weights))
             x_values.append((bin_edges[num + 1] + bin_edges[num]) / 2.)
 

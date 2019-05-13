@@ -77,7 +77,7 @@ for cname,clist in categories.iteritems():
         dfs[cname] = dfs[cname].append(f["tree"].pandas.df(uconfig.features.all_vars()))
         for weight in uconfig.training.weights:
             weightname = uconfig.training.weights[weight]
-            weightlist = f["tree"].pandas.df([weightname])
+            weightlist = f["tree"].pandas.df([weightname]).abs()
             if weightname=="procweight" and uconfig.training.signal_weight_method=="constant":
                 weightlist = pd.DataFrame(np.ones(shape=(len(weightlist),1)), columns=["procweight"])
             wts[weight][cname] = wts[weight][cname].append(weightlist)
