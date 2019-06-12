@@ -19,8 +19,8 @@ uconfig.training.size = 0.5
 uconfig.training.signal_id_method = "two"
 uconfig.training.signal_weight_method = "default"
 uconfig.training.weights = {
-    "flat": "flatweightZ30",
-    "proc": "procweight",
+    "flat": ["flatweightZ30"],
+    "proc": ["procweight"],
 }
 uconfig.training.algorithms = {
     "bdt": "flat",

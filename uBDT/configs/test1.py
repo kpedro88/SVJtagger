@@ -18,8 +18,8 @@ uconfig.features.spectator = ["mt","eta"]
 uconfig.training.size = 0.5
 uconfig.training.signal_id_method = "all" # options are all, two, isHV
 uconfig.training.weights = {
-    "flat": "flatweightZ30",
-    "proc": "procweight",
+    "flat": ["flatweightZ30"],
+    "proc": ["procweight"],
 }
 uconfig.training.algorithms = {
     "bdt": "flat",

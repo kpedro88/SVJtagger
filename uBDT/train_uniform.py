@@ -76,11 +76,14 @@ for cname,clist in categories.iteritems():
         f = up.open(uconfig.dataset.path+"tree_"+sample+".root")
         dfs[cname] = dfs[cname].append(f["tree"].pandas.df(uconfig.features.all_vars()))
         for weight in uconfig.training.weights:
-            weightname = uconfig.training.weights[weight]
-            weightlist = f["tree"].pandas.df([weightname]).abs()
-            if weightname=="procweight" and uconfig.training.signal_weight_method=="constant":
-                weightlist = pd.DataFrame(np.ones(shape=(len(weightlist),1)), columns=["procweight"])
-            wts[weight][cname] = wts[weight][cname].append(weightlist)
+            # make temporary df with all weight columns
+            weightlist = f["tree"].pandas.df(uconfig.training.weights[weight]).abs() # ignore sign of weight
+            if "procweight" in uconfig.training.weights[weight] and uconfig.training.signal_weight_method=="constant":
+                weightlist["procweight"] = 1
+            wprodtmp = pd.DataFrame()
+            # easiest way to make a series into a dataframe
+            wprodtmp["trainweight"] = weightlist.product(axis=1)
+            wts[weight][cname] = wts[weight][cname].append(wprodtmp)
 
 # apply signal id criteria
 # make sure to mask weights as well

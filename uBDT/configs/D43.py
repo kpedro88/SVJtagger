@@ -17,4 +17,4 @@ uconfig.dataset.signal = {"ttbar": [
     "TTJets_HT2500toInf",
 ]}
 uconfig.training.signal_id_method = "two"
-uconfig.training.weights["flat"] = "flatweightttbar"
+uconfig.training.weights["flat"] = ["flatweightttbar"]
