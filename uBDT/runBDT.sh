@@ -7,8 +7,9 @@ VERBOSE=""
 GRIDVERSION=-1
 QUERY=""
 FETCH=0
+PFORMAT=""
 
-while getopts "m:C:G:q:vf" opt; do
+while getopts "m:C:G:q:vfp" opt; do
 	case "$opt" in
 		m) MODE=$OPTARG
 		;;
@@ -21,6 +22,8 @@ while getopts "m:C:G:q:vf" opt; do
 		v) VERBOSE="-v"
 		;;
 		f) FETCH=1
+		;;
+		p) PFORMAT="-f png pdf"
 		;;
 	esac
 done
@@ -56,9 +59,9 @@ if [ "$MODE" = plot ]; then
 			echo "copied existing plots"
 		else
 			# bdt plots
-			python report_uniform.py -C $CONFIG -d ${TARDIR}/${TRAINDIR} -o ${OUTDIR} -c bdt -t flat -s bdt
+			python report_uniform.py -C $CONFIG -d ${TARDIR}/${TRAINDIR} -o ${OUTDIR} -c bdt -t flat -s bdt $PFORMAT
 			# ubdt plots
-			python report_uniform.py -C $CONFIG -d ${TARDIR}/${TRAINDIR} -o ${OUTDIR} -c ubdt -t proc -s ubdt
+			python report_uniform.py -C $CONFIG -d ${TARDIR}/${TRAINDIR} -o ${OUTDIR} -c ubdt -t proc -s ubdt $PFORMAT
 			echo ""
 		fi
 	done
