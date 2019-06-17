@@ -47,6 +47,10 @@ plot_2D_text()
 from mods import roc_with_auc
 roc_with_auc()
 
+# modify rotation of feature labels
+from mods import set_bar_compare_rotate
+set_bar_compare_rotate(45)
+
 # make sig vs bkg eff
 def mvaeffs(barplot,labels):
     effs = {}
