@@ -139,6 +139,10 @@ def saveplots(plots,config,repplots,matplots,verbose=False):
         if verbose: fprint(pname)
         plot.create(config)
         plot.save(pname,repplots,matplots)
+        # also save grid plots separately
+        if hasattr(plot.plot,"plots"):
+            for iplot,sepplot in enumerate(plot.plot.plots):
+                saveplot(pname+"_"+str(iplot),sepplot,repplots,matplots)
 
 class RepPlot:
     def __init__(self, fun, args=[], kwargs={}):
