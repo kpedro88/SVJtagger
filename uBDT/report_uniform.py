@@ -49,7 +49,7 @@ roc_with_auc()
 
 # modify rotation of feature labels
 from mods import set_bar_compare_rotate
-set_bar_compare_rotate(45)
+set_bar_compare_rotate(45,'right')
 
 # make sig vs bkg eff
 def mvaeffs(barplot,labels):

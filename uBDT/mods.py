@@ -451,7 +451,7 @@ def flat_log_loss():
 
     AbstractFlatnessLossFunction.negative_gradient = negative_gradient_log_loss
 
-def set_bar_compare_rotate(deg=90):
+def set_bar_compare_rotate(deg=90,halign='center'):
     from rep.plotting import BarComparePlot, _COLOR_CYCLE
     import numpy
     import matplotlib.pyplot as plt
@@ -469,6 +469,6 @@ def set_bar_compare_rotate(deg=90):
             plt.bar(length * index + move, numpy.array(list(sample.values()))[inds], 1., alpha=self.alpha, color=color,
                     label=label)
 
-        plt.xticks(length * numpy.arange(len(inds)), xticks_labels, rotation=deg)
+        plt.xticks(length * numpy.arange(len(inds)), xticks_labels, rotation=deg, ha=halign)
 
     BarComparePlot._plot = _plot_rotate
