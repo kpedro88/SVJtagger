@@ -1,15 +1,27 @@
 from collections import OrderedDict
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
-def getVars(gridversion=1):
-    if gridversion==1:
-        return OrderedDict([
+grids = OrderedDict([
+    (1, OrderedDict([
             ("n_estimators", [100,500,1000,5000]),
             ("max_depth", [2,3,4]),
             ("learning_rate", [0.01,0.1,0.3,0.5,0.7,1.0]),
             ("power", [1.3,2.0]),
             ("fl_coefficient", [3,10,50]),
         ])
+    ),
+    (2, OrderedDict([
+            ("n_estimators", [200,500,1000,2000]),
+            ("max_depth", [2,3,4]),
+            ("learning_rate", [0.01,0.1,0.3,0.5,0.7,1.0]),
+            ("subsample", [0.3,0.6,0.9]),
+            ("min_samples_leaf", [0.01,0.05,0.1]),
+        ])
+    ),
+])
+
+def getVars(gridversion=1):
+    return grids[gridversion]
 
 # recursive nested loop
 def varyAll(paramlist,gridpoint,gridpoints,pos=0):
