@@ -194,13 +194,27 @@ if __name__=="__main__":
                         fig2 = plt.figure()
                         fig2.tight_layout(pad=1.5)
                         ax2 = fig2.add_subplot(111)
+                        # create uniform bins
+                        xorig = df[gridvar].copy().values
+                        xbinned = df[gridvar].copy().values
+                        xunique = sorted(pd.unique(xbinned))
+                        xbins = []
+                        xticks = []
+                        for i,x in enumerate(xunique):
+                            xbinned[xorig == x] = i
+                            xticks.append(i)
+                            xbins.append(float(i)-0.5)
+                        xbins.append(len(xunique)-0.5)
                         # create heatmap
-                        heatmap, xedges, yedges = np.histogram2d(df[gridvar].values, df[metric].values, bins=(50,50))
+                        heatmap, xedges, yedges = np.histogram2d(xbinned, df[metric], bins=(xbins,50))
                         # need to transpose heatmap because of mpl inconsistency
                         img = ax2.pcolormesh(xedges, yedges, heatmap.T, cmap='inferno_r')
                         fig2.colorbar(img, ax=ax2)
                         ax2.set_xlabel(gridvar)
                         ax2.set_ylabel(metric)
+                        # restore x values as (categorical) tick labels
+                        ax2.set_xticks(xticks)
+                        ax2.set_xticklabels([str(x) for x in xunique])
                         saveplot(metric+"_vs_"+gridvar+"_"+dtype)
                 topfile.write("\n")
             print "Wrote "+topfilename
