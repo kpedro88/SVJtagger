@@ -176,6 +176,13 @@ if __name__=="__main__":
     if is_grid:
         topfilename = gridname+"_top"+str(args.topn)+"_"+args.suffix+".txt"
         with open(topfilename,'w') as topfile:
+            # overlay scatter w/ and w/out cut
+            for metric in metrics:
+                ax = dfs["all"].plot.scatter(x="number",y=metric,color="blue",label="all")
+                if "cut" in dfs:
+                    ax3 = dfs["cut"].plot.scatter(x="number",y=metric,color="red",label="cut",ax=ax)
+                    legend = ax.legend()
+                saveplot(metric+"_vs_number")
             for dtype,df in dfs.iteritems():
                 topfile.write(dtype+"\n")
                 for metric in metrics:
@@ -183,17 +190,18 @@ if __name__=="__main__":
                     topfile.write(metric+"\n")
                     topfile.write(df.sort_values(by=[metric],ascending=do_ascending)[:args.topn].to_string()+"\n")
                     # plot the metric for all grid points
-                    if is_grid:
-                        ax = df.plot.scatter(x="number",y=metric)
-                        saveplot(metric+"_vs_number_"+dtype)
-                        columns = 2
-                        rows = (len(gridvars)+columns-1)//columns
-                        plt.figure()
-                        plt.tight_layout(pad=1.5)
-                        for igv,gridvar in enumerate(gridvars.keys()):
-                            ax2 = plt.subplot(rows,columns,igv+1)
-                            df.plot.scatter(x=gridvar,y=metric,ax=ax2)
-                        saveplot(metric+"_vs_gridvars_"+dtype)
+                    for igv,gridvar in enumerate(gridvars.keys()):
+                        fig2 = plt.figure()
+                        fig2.tight_layout(pad=1.5)
+                        ax2 = fig2.add_subplot(111)
+                        # create heatmap
+                        heatmap, xedges, yedges = np.histogram2d(df[gridvar].values, df[metric].values, bins=(50,50))
+                        # need to transpose heatmap because of mpl inconsistency
+                        img = ax2.pcolormesh(xedges, yedges, heatmap.T, cmap='inferno_r')
+                        fig2.colorbar(img, ax=ax2)
+                        ax2.set_xlabel(gridvar)
+                        ax2.set_ylabel(metric)
+                        saveplot(metric+"_vs_"+gridvar+"_"+dtype)
                 topfile.write("\n")
             print "Wrote "+topfilename
     else:
