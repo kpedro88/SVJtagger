@@ -43,11 +43,14 @@ datasets = {
     "background": uconfig.dataset.background,
 }
 categories = {}
+category_paths = {}
 for dname in datasets:
     for cname in datasets[dname]:
         if cname in categories: raise ValueError("Repeated dataset category name: "+cname)
         if cname in datasets: raise ValueError("Reserved dataset name used as category: "+cname)
         categories[cname] = datasets[dname][cname]
+        if isinstance(uconfig.dataset.path,dict): category_paths[cname] = uconfig.dataset.path[dname]
+        else: category_paths[cname] = uconfig.dataset.path
 
 # load and create dataframes
 dfs = {}
@@ -73,7 +76,7 @@ for cname,clist in categories.iteritems():
         wts[weight][cname] = pd.DataFrame()
     for sample in clist:
         if args.verbose: print sample
-        f = up.open(uconfig.dataset.path+"tree_"+sample+".root")
+        f = up.open(category_paths[cname]+"tree_"+sample+".root")
         dfs[cname] = dfs[cname].append(f["tree"].pandas.df(uconfig.features.all_vars()))
         for weight in uconfig.training.weights:
             # make temporary df with all weight columns
